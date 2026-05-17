@@ -2,335 +2,1420 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE SOMATIC LOOP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MINIMAL CREAKS BY THE WOODS // PROTOCOL_OVERDRIVE</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
     <style>
         :root {
-            --bg: #0A0A0A;
-            --text: #E0E0E0;
+            --neon-magenta: #ff00ea;
+            --neon-cyan: #00f3ff;
+            --liminal-white: #f0f4f8;
+            --void-black: #05030a;
+            --glitch-red: #ff0055;
+            --glass-sheen: rgba(12, 8, 24, 0.85);
+            --crt-glow: 0 0 25px rgba(0, 243, 255, 0.45);
+            --terminal-green: #00ffaa;
         }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
         body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Cormorant Garamond', serif;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: var(--void-black);
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--liminal-white);
         }
-        #app {
-            position: relative;
-            width: 100vw; height: 100vh;
+
+        /* CRT Scanline Scan Matrix Grid */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+
+        /* Structural Framework Interface Architecture Layout */
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 100;
+            background: radial-gradient(circle at center, #140b24 0%, #020105 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding: 20px;
             text-align: center;
-            z-index: 10;
+            backdrop-filter: blur(10px);
         }
-        #canvas-overlay {
+
+        .terminal-header {
+            width: 100%;
+            max-width: 850px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 2px solid var(--neon-cyan);
+            border-bottom: none;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--neon-cyan);
+            box-shadow: 0 -5px 15px rgba(0, 243, 255, 0.1);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tdot {
+            width: 12px; height: 12px; border-radius: 50%;
+        }
+        .tdot-r { background: var(--glitch-red); }
+        .tdot-y { background: #ffaa00; }
+        .tdot-g { background: var(--terminal-green); }
+
+        h1 {
+            font-size: 3.2rem;
+            color: var(--liminal-white);
+            text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan);
+            margin-bottom: 5px;
+            letter-spacing: 6px;
+            font-weight: 900;
+            animation: textGlitch 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes textGlitch {
+            0% { text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan); }
+            35% { text-shadow: -3px 2px 0px var(--neon-magenta), 3px -2px 0px var(--neon-cyan); filter: hue-rotate(45deg); }
+            70% { text-shadow: 2px -3px 0px var(--neon-magenta), -2px 2px 0px var(--neon-cyan); filter: blur(0.5px); }
+            100% { text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan); }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--neon-cyan);
+            margin-bottom: 25px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .container-box {
+            background: var(--glass-sheen);
+            border: 2px solid var(--neon-cyan);
+            padding: 35px;
+            max-width: 850px;
+            width: 100%;
+            backdrop-filter: blur(25px);
+            box-shadow: var(--crt-glow), inset 0 0 25px rgba(0, 243, 255, 0.15);
+            text-align: left;
+        }
+
+        .instructions {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            color: #cbd5e1;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 15px;
+            border-bottom: 1px dashed var(--neon-magenta);
+        }
+
+        .instructions::-webkit-scrollbar { width: 6px; }
+        .instructions::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .instructions::-webkit-scrollbar-thumb { background: var(--neon-magenta); }
+
+        .instruct-row {
+            margin-bottom: 15px;
+            padding-left: 15px;
+            border-left: 3px solid var(--neon-cyan);
+        }
+        .instruct-row.danger { border-left-color: var(--glitch-red); }
+
+        highlight {
+            color: var(--neon-cyan);
+            font-weight: bold;
+            background: rgba(0, 243, 255, 0.12);
+            padding: 2px 6px;
+        }
+        highlight.danger {
+            color: var(--glitch-red);
+            background: rgba(255, 0, 85, 0.12);
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--neon-magenta);
+            color: #fff;
+            padding: 16px 45px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: 4px;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .btn:hover {
+            background: var(--neon-magenta);
+            box-shadow: 0 0 30px var(--neon-magenta);
+            color: #000;
+            transform: scale(1.03);
+        }
+
+        .options-group {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .radio-label {
+            cursor: pointer;
+            border: 2px dashed #4b367c;
+            padding: 14px 28px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.2s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+            flex: 1;
+            text-align: center;
+        }
+        .radio-label input { display: none; }
+        .radio-label.active {
+            border: 2px solid var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
+        }
+
+        /* Interactive HUD Systems */
+        #hud {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
+            z-index: 10;
             pointer-events: none;
-            z-index: 5;
+            display: none;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.85);
         }
-        #webcam {
+
+        .hud-panel {
             position: absolute;
-            opacity: 0; /* Hidden initially */
-            transform: scaleX(-1);
-            filter: grayscale(1) blur(10px);
-            transition: opacity 10s ease;
-        }
-        #ui-layer {
-            z-index: 20;
-            max-width: 600px;
+            background: rgba(4, 2, 10, 0.88);
+            border: 1px solid var(--neon-cyan);
             padding: 20px;
+            backdrop-filter: blur(12px);
+            pointer-events: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #stats-panel { top: 30px; left: 30px; width: 320px; }
+        #cam-status-panel { top: 30px; right: 30px; text-align: right; width: 320px; }
+        
+        .meter-container {
+            margin-top: 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid #3d285c;
+            height: 10px;
+            position: relative;
+        }
+        .meter-bar {
+            width: 100%; height: 100%;
+            transition: width 0.05s linear;
+        }
+        #weapon-charge-bar { background: linear-gradient(90deg, var(--neon-magenta), var(--neon-cyan)); }
+        #stamina-bar { background: linear-gradient(90deg, #ff9900, #ffea00); }
+
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 32px; height: 32px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0.75;
+        }
+        #crosshair::before, #crosshair::after {
+            content: ''; position: absolute; background: var(--neon-cyan);
+        }
+        #crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
+        #crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
+
+        /* Dynamic Proximity Vector Tracking Matrix Elements */
+        #proximity-radar-indicator {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 64px; height: 64px;
+            transform: translate(-50%, -50%);
+            border: 2px dashed var(--glitch-red);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        #action-prompt {
+            position: absolute;
+            bottom: 200px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            text-shadow: 0 3px 10px #000;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            width: 85%;
             letter-spacing: 2px;
             line-height: 1.6;
-            transition: filter 2s, opacity 2s;
         }
-        .start-btn {
-            background: none;
-            border: 1px solid var(--text);
-            color: var(--text);
-            padding: 15px 30px;
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem;
-            cursor: pointer;
-            letter-spacing: 5px;
-            transition: all 0.5s;
-        }
-        .start-btn:hover {
-            background: var(--text);
-            color: var(--bg);
-        }
-        #vignette {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            box-shadow: inset 0 0 200px rgba(0,0,0,0);
-            pointer-events: none;
-            z-index: 15;
-            transition: box-shadow 5s;
-        }
-        #void-dot {
-            width: 2px; height: 2px;
-            background: white;
-            border-radius: 50%;
+
+        #action-progress-container {
+            position: absolute;
+            bottom: 150px; left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            background: rgba(0,0,0,0.95);
+            border: 2px solid var(--neon-magenta);
+            height: 16px;
             display: none;
         }
+        #action-progress-bar {
+            width: 0%; height: 100%;
+            background: var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-magenta);
+        }
+
+        #audio-visualizer {
+            display: flex; justify-content: space-between;
+            height: 16px; width: 100%; margin-top: 12px;
+        }
+        .vis-bar {
+            width: 7%; background: var(--neon-cyan);
+            opacity: 0.75; transition: height 0.05s ease;
+        }
+
+        #blink-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #030107;
+            z-index: 5; opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.08s ease-in-out;
+        }
+
+        #webcam-video {
+            position: absolute;
+            bottom: 30px; right: 30px;
+            width: 160px; height: 120px;
+            object-fit: cover;
+            border: 2px solid var(--neon-magenta);
+            transform: scaleX(-1);
+            z-index: 50;
+            box-shadow: 0 0 20px rgba(255,0,234,0.35);
+            display: none;
+        }
+
+        #mobile-controls {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 260px;
+            z-index: 80; display: none; pointer-events: none;
+        }
+        .joystick-zone {
+            position: absolute; bottom: 40px; left: 60px;
+            width: 140px; height: 140px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(0, 243, 255, 0.4);
+            border-radius: 50%; pointer-events: auto;
+        }
+        .joystick-knob {
+            position: absolute; top: 48px; left: 48px;
+            width: 44px; height: 44px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+        .mobile-btn-container {
+            position: absolute; bottom: 40px; right: 60px;
+            display: flex; gap: 25px; pointer-events: auto;
+        }
+        .mobile-action-btn {
+            width: 90px; height: 90px; border-radius: 50%;
+            color: white; font-weight: bold; font-size: 0.8rem;
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            letter-spacing: 1px;
+        }
+        #btn-mobile-eye { background: rgba(255, 0, 234, 0.3); border: 2px solid var(--neon-magenta); }
+        #btn-mobile-fire { background: rgba(0, 243, 255, 0.3); border: 2px solid var(--neon-cyan); }
+        .mobile-action-btn:active { transform: scale(0.9); }
+
+        .status-dot {
+            display: inline-block; width: 10px; height: 10px;
+            border-radius: 50%; background-color: var(--glitch-red); margin-right: 8px;
+        }
+        .status-dot.active { background-color: var(--terminal-green); box-shadow: 0 0 10px var(--terminal-green); }
+        .danger-text { color: var(--glitch-red); font-weight: bold; }
+        .calibrating-text { color: #ffaa00; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="vignette"></div>
-    <canvas id="canvas-overlay"></canvas>
-    
-    <div id="app">
-        <video id="webcam" autoplay playsinline></video>
+    <div id="canvas-container"></div>
+    <div id="blink-overlay"></div>
+    <div id="proximity-radar-indicator"></div>
+    <video id="webcam-video" autoplay playsinline muted></video>
+
+    <div id="hud">
+        <div id="crosshair"></div>
+        <div id="stats-panel" class="hud-panel">
+            <div style="font-size:1.1rem; color:var(--neon-cyan); font-weight:bold; letter-spacing:1px;">FLOWERS COLLECTED: <span id="ui-flowers" style="color:#fff;">0 / 4</span></div>
+            <div style="font-size:0.8rem; margin-top:6px; text-transform:uppercase;">OBJECTIVE: <span id="ui-objective" style="color:#aaa;">LOCATING EMISSIVE SIGNATURES</span></div>
+            
+            <div style="font-size:0.8rem; margin-top:16px; font-weight:bold; color:var(--neon-magenta)">LANTERN ENERGY CORE:</div>
+            <div class="meter-container"><div id="weapon-charge-bar" class="meter-bar"></div></div>
+            
+            <div style="font-size:0.8rem; margin-top:12px; font-weight:bold; color:#ffaa00">NEURAL STAMINA RESERVE:</div>
+            <div class="meter-container"><div id="stamina-bar" class="meter-bar"></div></div>
+        </div>
         
-        <div id="ui-layer">
-            <div id="text-content">
-                <button class="start-btn" id="start-btn">BEGIN</button>
+        <div id="cam-status-panel" class="hud-panel">
+            <div style="font-size:0.85rem;"><span id="track-dot" class="status-dot"></span>BIOMETRIC ENGINE: <span id="track-text">INITIALIZING FEED</span></div>
+            <div style="font-size:0.95rem; font-weight:bold; color:#fff; margin-top:6px;">OCULAR_MATRIX: <span id="eye-status">SCANNING</span></div>
+            <div id="audio-visualizer">
+                <div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div>
+                <div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div>
             </div>
-            <div id="void-dot"></div>
+        </div>
+        <div id="action-prompt"></div>
+        <div id="action-progress-container">
+            <div id="action-progress-bar"></div>
         </div>
     </div>
 
-<script type="module">
-    const video = document.getElementById('webcam');
-    const canvas = document.getElementById('canvas-overlay');
-    const ctx = canvas.getContext('2d');
-    const uiLayer = document.getElementById('ui-layer');
-    const textContent = document.getElementById('text-content');
-    const vignette = document.getElementById('vignette');
-    const startBtn = document.getElementById('start-btn');
+    <div id="start-screen" class="screen">
+        <div class="terminal-header">
+            <div class="terminal-dots"><div class="tdot tdot-r"></div><div class="tdot tdot-y"></div><div class="tdot tdot-g"></div></div>
+            <div>SYSTEM_INITIALIZATION_LOG_V2.5</div>
+        </div>
+        <div class="container-box">
+            <h1 style="text-align: center; margin-bottom: 10px;">CREAKS BY THE WOODS</h1>
+            <div class="subtitle" style="text-align: center;">// PROTOCOL_OVERDRIVE_RECONSTRUCT</div>
+            
+            <div class="instructions">
+                <div class="instruct-row">
+                    <p>⚡ <highlight>THE OBJECTIVE MATRIX:</highlight> Track, isolate, and harvest <highlight>4 Quantum Flowers</highlight> distributed across the plain, then return to the center entity, <highlight>The Pimporin Queen</highlight>, to force physical reality initialization.</p>
+                </div>
+                <div class="instruct-row danger">
+                    <p>⏳ <highlight class="danger">HARVEST TECHNIQUE:</highlight> Stand completely inside a flower's neon protective boundary mesh and <highlight class="danger">CLOSE YOUR EYES FOR 2.5 SECONDS</highlight> continuously to capture reality parameters.</p>
+                </div>
+                <div class="instruct-row danger">
+                    <p>👁️ <highlight class="danger">BIOMETRIC VECTOR THREAT:</highlight> Hostile <highlight class="danger">Evil Dorims</highlight> materialize on the forest plane. They manifest through spatial gaps: <highlight class="danger">EVERY SINGLE TIME YOU BLINK OR SEAL YOUR EYELIDS, A NEW ANOMALY SPAWNS NEARBY.</highlight></p>
+                </div>
+                <div class="instruct-row">
+                    <p>🔮 <highlight>DIRECTIONAL BEACONS:</highlight> Dorims emit high-intensity crimson light beams and tracking matrices. A dynamic <highlight>Proximity Telemetry Radar</highlight> flashes on your HUD screen to warn you of off-screen approaches.</p>
+                </div>
+                <div class="instruct-row">
+                    <p>🛡️ <highlight>KINETIC LANTERN DEFENSE:</highlight> Discharge your <highlight>Lux-Vortex Lantern</highlight> to banish immediate physical threats out of reality phases. Controls: <strong>LEFT CLICK</strong> (Desktop) or <strong>BURST BUTTON</strong> (Mobile). Run via <strong>SHIFT</strong>.</p>
+                </div>
+            </div>
 
-    let faceLandmarker;
-    let audioCtx;
-    let track1, track2, currentSource;
-    let lowPass;
-    let lastVideoTime = -1;
-    
-    // Simulation Variables
-    let totalLife = 420; // 7 minutes
-    let isPaused = false;
-    let isGameOver = false;
-    let restPhaseActive = false;
-    let lastBlinkTime = 0;
-    let hasEnded = false;
+            <div style="margin-bottom: 15px; font-weight: bold; font-size:0.9rem; letter-spacing:2px; color:var(--neon-cyan); text-align:center;">SELECT SYSTEM COGNITIVE INTERFACE:</div>
+            <div class="options-group">
+                <div class="radio-label active" id="opt-desktop" onclick="setPlatform('desktop')">
+                    <input type="radio" name="platform" checked> DESKTOP MOUSE / KEYBOARD
+                </div>
+                <div class="radio-label" id="opt-mobile" onclick="setPlatform('mobile')">
+                    <input type="radio" name="platform"> MOBILE COGNITIVE INTERFACE
+                </div>
+            </div>
 
-    const milestones = [
-        { age: 420, text: "It is a Tuesday. You are small. Breathe in the smell of the carpet." },
-        { age: 340, text: "You think you have time. Everyone does." },
-        { age: 240, text: "CLOSE YOUR EYES. REMEMBER THE HOUSE YOU GREW UP IN.", forced: true, duration: 15 },
-        { age: 140, text: "The names of your friends are slipping through your fingers like water." },
-        { age: 60, text: "KEEP THEM CLOSED. IT IS LATE. EVERYONE IS SLEEPING.", forced: true, duration: 20 },
-        { age: 15, text: "One last blink for the road." }
-    ];
+            <button class="btn" onclick="initGame()">INITIALIZE SYSTEM LOGIC</button>
+        </div>
+    </div>
 
-    async function initMediaPipe() {
-        const vision = await ff_tasks_vision.FilesetResolver.forVisionTasks(
-            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
-        );
-        faceLandmarker = await ff_tasks_vision.FaceLandmarker.createFromOptions(vision, {
-            baseOptions: {
-                modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-                delegate: "GPU"
-            },
-            outputFaceBlendshapes: true,
-            runningMode: "VIDEO",
-            numFaces: 1
-        });
-    }
+    <div id="gameover-screen" class="screen" style="display:none;">
+        <div class="terminal-header" style="border-color: var(--glitch-red); color: var(--glitch-red); background: rgba(255,0,85,0.1);">
+            <div class="terminal-dots"><div class="tdot tdot-r"></div><div class="tdot tdot-r"></div><div class="tdot tdot-r"></div></div>
+            <div>CRITICAL_SYSTEM_FAILURE</div>
+        </div>
+        <div class="container-box" style="border-color: var(--glitch-red); box-shadow: 0 0 35px var(--glitch-red);">
+            <h1 class="danger-text" style="font-size: 3.2rem; margin-bottom:15px; text-align: center;">CONSCIOUSNESS CORRUPTED</h1>
+            <div class="subtitle" id="gameover-reason" style="color:#ffaa00; text-align: center;">ANOMALY INDUCED BIOMETRIC RE-MAPPING COLLAPSE</div>
+            <p style="color:#cbd5e1; font-size:1rem; line-height:1.7; text-align: center; margin-bottom: 30px;">Your local network infrastructure has completely dissolved into noise vectors. Your signature remains trapped inside the looped node parameters indefinitely.</p>
+            <button class="btn" style="border-color:var(--glitch-red);" onclick="location.reload()">RE-BOOT CORE ENGINE</button>
+        </div>
+    </div>
 
-    async function initAudio() {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        lowPass = audioCtx.createBiquadFilter();
-        lowPass.type = "lowpass";
-        lowPass.frequency.value = 20000;
+    <div id="win-screen" class="screen" style="display:none;">
+        <div class="terminal-header" style="border-color: var(--terminal-green); color: var(--terminal-green); background: rgba(0,255,170,0.1);">
+            <div class="terminal-dots"><div class="tdot tdot-g"></div><div class="tdot tdot-g"></div><div class="tdot tdot-g"></div></div>
+            <div>COMPILATION_SUCCESSFUL</div>
+        </div>
+        <div class="container-box" style="border-color: var(--terminal-green); box-shadow: 0 0 35px rgba(0,255,170,0.35);">
+            <h1 style="color: var(--terminal-green); font-size: 3.2rem; text-shadow: 0 0 25px rgba(0,255,170,0.4); margin-bottom: 15px; text-align: center;">REALITY RESTORED</h1>
+            <div class="subtitle" style="color:#aaffd4; text-align: center;">THE INITIALIZATION MATRIX HAS RETIRED ARCHITECTURE LOOPS</div>
+            <p style="color:#cbd5e1; font-size:1rem; line-height:1.7; text-align: center; margin-bottom: 30px;">Atmospheric distortion fields cease. The loop spatial geometries flatten down back into standard natural constructs. You are safe to disengage.</p>
+            <button class="btn" style="border-color:var(--terminal-green); " onclick="location.reload()">RE-SIMULATE ARCHITECTURE</button>
+        </div>
+    </div>
 
-        const loadTrack = async (url) => {
-            const response = await fetch(url);
-            const arrayBuffer = await response.arrayBuffer();
-            return await audioCtx.decodeAudioData(arrayBuffer);
-        };
+    <div id="mobile-controls">
+        <div class="joystick-zone" id="joy-zone"><div class="joystick-knob" id="joy-knob"></div></div>
+        <div class="mobile-btn-container">
+            <div class="mobile-action-btn" id="btn-mobile-eye">SEAL<br>EYES</div>
+            <div class="mobile-action-btn" id="btn-mobile-fire">LIGHT<br>BURST</div>
+        </div>
+    </div>
 
-        // Placeholder logic: Since files are local, we try-catch for the demo
-        try {
-            track1 = await loadTrack('track1.mp3');
-            track2 = await loadTrack('track2.mp3');
-        } catch (e) {
-            console.error("Audio files not found. Using generated silence/noise for logic.");
+    <script>
+        // --- CORE STATE MATRIX ---
+        let platform = 'desktop';
+        let gameActive = false;
+        let flowersCollected = 0;
+        const totalFlowersNeeded = 4;
+        
+        let keys = { w: false, a: false, s: false, d: false, shift: false };
+        let cameraRotation = { x: 0, y: 0 };
+        
+        let joystickActive = false;
+        let joystickStart = { x: 0, y: 0 };
+        const maxJoystickDelta = 50;
+        let moveVector = { x: 0, z: 0 };
+        
+        // Advanced FaceMesh Tracking State Parameters
+        let eyesClosed = false;
+        let lastEyeState = false;
+        let eyeClosureTimer = 0;
+        const targetClosureTime = 2.5;
+        let earBaseline = 0.0;
+        let calibrationFrames = 0;
+        const requiredCalibrationFrames = 60;
+        let isCalibrated = false;
+        
+        // Weapon / Run Energy States
+        let weaponCharge = 100.0;
+        const weaponMaxCharge = 100.0;
+        const weaponFireCost = 25.0;
+        const weaponRechargeRate = 18.0; 
+
+        let stamina = 100.0;
+        const maxStamina = 100.0;
+        const staminaDrainRate = 33.0;
+        const staminaRegenRate = 22.0;
+        let isStaminaExhausted = false;
+        
+        // Render Node Graph Engine Pointers
+        let scene, camera, renderer, clock;
+        let playerContainer, flashlight;
+        let trees = [];
+        let dorims = [];
+        let flowers = [];
+        let queenPimporin;
+        let collectionRingHelper;
+        
+        // Dynamic Real-Time Synthesis Audio Matrices
+        let audioCtx;
+        let masterBusGain;
+        let proximityDangerGain;
+        let ambientHumOsc;
+        let isAudioInitialized = false;
+
+        const mapSize = 120;
+        let stepSoundTimer = 0;
+        
+        function setPlatform(p) {
+            platform = p;
+            document.getElementById('opt-desktop').classList.toggle('active', p === 'desktop');
+            document.getElementById('opt-mobile').classList.toggle('active', p === 'mobile');
         }
 
-        playTrack(track1);
-    }
-
-    function playTrack(buffer) {
-        if (!buffer) return;
-        currentSource = audioCtx.createBufferSource();
-        currentSource.buffer = buffer;
-        currentSource.loop = true;
-        currentSource.connect(lowPass).connect(audioCtx.destination);
-        currentSource.start();
-    }
-
-    function applyBlinkMuffle() {
-        lowPass.frequency.cancelScheduledValues(audioCtx.currentTime);
-        lowPass.frequency.setValueAtTime(200, audioCtx.currentTime);
-        lowPass.frequency.exponentialRampToValueAtTime(20000, audioCtx.currentTime + 0.4);
-    }
-
-    function applyTapeDecay() {
-        if (!currentSource || totalLife > 120) return;
-        const decay = Math.sin(audioCtx.currentTime * 0.5) * 0.02;
-        currentSource.playbackRate.value = 0.98 + decay;
-    }
-
-    // --- Visuals ---
-    function renderGrain() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const imageData = ctx.createImageData(canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const val = Math.random() * 255;
-            data[i] = data[i+1] = data[i+2] = val;
-            data[i+3] = 15; // Noise opacity
+        // --- PRODUCTION SYNTHESIZER GRAPH LAYER ---
+        function initAudioEngine() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                
+                masterBusGain = audioCtx.createGain();
+                masterBusGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+                masterBusGain.connect(audioCtx.destination);
+                
+                proximityDangerGain = audioCtx.createGain();
+                proximityDangerGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                proximityDangerGain.connect(masterBusGain);
+                
+                ambientHumOsc = audioCtx.createOscillator();
+                const filterNode = audioCtx.createBiquadFilter();
+                
+                ambientHumOsc.type = 'sawtooth';
+                ambientHumOsc.frequency.setValueAtTime(55, audioCtx.currentTime); 
+                
+                filterNode.type = 'lowpass';
+                filterNode.frequency.setValueAtTime(140, audioCtx.currentTime);
+                
+                ambientHumOsc.connect(filterNode);
+                filterNode.connect(proximityDangerGain);
+                ambientHumOsc.start();
+                
+                isAudioInitialized = true;
+            } catch (err) {
+                console.error("Audio block generation trace issue:", err);
+            }
         }
-        ctx.putImageData(imageData, 0, 0);
-    }
 
-    function updateVisualShift() {
-        const progress = totalLife / 420;
-        if (progress > 0.8) {
-            uiLayer.style.filter = `blur(${(progress - 0.8) * 50}px) brightness(3)`;
-        } else if (progress > 0.2) {
-            uiLayer.style.filter = `blur(0px) grayscale(0)`;
-        } else {
-            vignette.style.boxShadow = `inset 0 0 ${300 - (progress * 1000)}px rgba(0,0,0,1)`;
+        function playSynthVoice(freq, type, duration, vol, decay) {
+            if (!isAudioInitialized || audioCtx.state === 'suspended') return;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + decay);
+            
+            osc.connect(gainNode);
+            gainNode.connect(masterBusGain);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
         }
-    }
 
-    // --- Main Logic ---
-    async function update() {
-        if (isGameOver) return;
+        function playWeaponSound() {
+            playSynthVoice(520, 'sawtooth', 0.25, 0.4, 0.2);
+            playSynthVoice(900, 'square', 0.12, 0.2, 0.08);
+        }
 
-        if (video.currentTime !== lastVideoTime) {
-            lastVideoTime = video.currentTime;
-            const results = faceLandmarker.detectForVideo(video, performance.now());
+        function playCollectionSound() {
+            playSynthVoice(523.25, 'sine', 0.3, 0.3, 0.25); 
+            setTimeout(() => playSynthVoice(659.25, 'sine', 0.3, 0.3, 0.25), 80); 
+            setTimeout(() => playSynthVoice(783.99, 'sine', 0.3, 0.3, 0.25), 160); 
+            setTimeout(() => playSynthVoice(1174.66, 'sine', 0.5, 0.4, 0.4), 240); 
+        }
 
-            if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
-                const shapes = results.faceBlendshapes[0].categories;
-                const leftEye = shapes.find(s => s.categoryName === "eyeBlinkLeft").score;
-                const rightEye = shapes.find(s => s.categoryName === "eyeBlinkRight").score;
+        function playStepSound(isRunning) {
+            if(!isAudioInitialized) return;
+            const bufferSize = audioCtx.sampleRate * 0.07;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = buffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(isRunning ? 400 : 300, audioCtx.currentTime);
+            filter.Q.setValueAtTime(5, audioCtx.currentTime);
+            
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(isRunning ? 0.06 : 0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+            
+            noiseNode.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterBusGain);
+            noiseNode.start();
+        }
 
-                if (leftEye > 0.6 && rightEye > 0.6) {
-                    handleBlink();
-                } else {
-                    handleEyesOpen();
+        function playBlinkSound() {
+            playSynthVoice(1400, 'sine', 0.05, 0.15, 0.03);
+        }
+
+        function playSpawnSound() {
+            playSynthVoice(82, 'sawtooth', 0.7, 0.4, 0.5);
+            playSynthVoice(116, 'triangle', 0.4, 0.3, 0.3);
+        }
+
+        function playGameOverSound() {
+            playSynthVoice(49, 'sawtooth', 2.2, 0.6, 2.0);
+        }
+
+        // --- COMPUTER VISION BIOMETRIC SUBSYSTEM ---
+        let videoElement = document.getElementById('webcam-video');
+        let trackingActive = false;
+
+        function setupBiometricsModule() {
+            const faceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+            });
+
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            faceMesh.onResults(processMeshTelemetry);
+
+            navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, frameRate: 30 } })
+                .then(stream => {
+                    videoElement.srcObject = stream;
+                    trackingActive = true;
+                    videoElement.style.display = "block";
+                    
+                    const dot = document.getElementById('track-dot');
+                    dot.classList.add('active');
+                    document.getElementById('track-text').innerHTML = "<span class='calibrating-text'>SAMPLING FACE VECTOR MODEL</span>";
+                    
+                    function captureFrameLoop() {
+                        if (gameActive && trackingActive) {
+                            faceMesh.send({ image: videoElement })
+                                .then(() => requestAnimationFrame(captureFrameLoop))
+                                .catch(() => requestAnimationFrame(captureFrameLoop));
+                        } else {
+                            requestAnimationFrame(captureFrameLoop);
+                        }
+                    }
+                    captureFrameLoop();
+                })
+                .catch(err => {
+                    console.warn("Webcam access failure. Standard manual system logic loops mapping loaded.", err);
+                    initializeControlFallbacks();
+                });
+        }
+
+        function initializeControlFallbacks() {
+            document.getElementById('track-text').innerText = "MANUAL LOGIC LAYER (SPACEBAR)";
+            document.getElementById('track-dot').classList.add('active');
+            document.getElementById('track-dot').style.backgroundColor = "var(--neon-cyan)";
+            
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') { e.preventDefault(); parseEyeStateAllocation(true); }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') { parseEyeStateAllocation(false); }
+            });
+
+            const mobileEyeBtn = document.getElementById('btn-mobile-eye');
+            mobileEyeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); parseEyeStateAllocation(true); });
+            mobileEyeBtn.addEventListener('touchend', (e) => { e.preventDefault(); parseEyeStateAllocation(false); });
+        }
+
+        function processMeshTelemetry(results) {
+            if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
+            const landmarks = results.multiFaceLandmarks[0];
+            
+            const leftEAR = Math.hypot(landmarks[386].x - landmarks[374].x, landmarks[386].y - landmarks[374].y) / 
+                            (Math.hypot(landmarks[362].x - landmarks[263].x, landmarks[362].y - landmarks[263].y) || 1);
+            const rightEAR = Math.hypot(landmarks[159].x - landmarks[145].x, landmarks[159].y - landmarks[145].y) / 
+                             (Math.hypot(landmarks[33].x - landmarks[133].x, landmarks[33].y - landmarks[133].y) || 1);
+
+            const currentAverageEAR = (leftEAR + rightEAR) / 2.0;
+
+            if (!isCalibrated) {
+                calibrationFrames++;
+                earBaseline += currentAverageEAR;
+                if (calibrationFrames >= requiredCalibrationFrames) {
+                    earBaseline = (earBaseline / requiredCalibrationFrames) * 0.65; 
+                    isCalibrated = true;
+                    document.getElementById('track-text').innerText = "MESH BIOMETRICS SECURED";
+                }
+                return;
+            }
+
+            if (currentAverageEAR < earBaseline) {
+                parseEyeStateAllocation(true);
+            } else {
+                parseEyeStateAllocation(false);
+            }
+        }
+
+        function parseEyeStateAllocation(isClosed) {
+            eyesClosed = isClosed;
+            const uiText = document.getElementById('eye-status');
+            const visualBlinkOverlay = document.getElementById('blink-overlay');
+            
+            if (eyesClosed) {
+                uiText.innerText = "EYELIDS SEALED CLOSED";
+                uiText.style.color = "var(--glitch-red)";
+                visualBlinkOverlay.style.opacity = "0.98";
+            } else {
+                uiText.innerText = "SCANNING NODE INTERSECTS";
+                uiText.style.color = "var(--terminal-green)";
+                visualBlinkOverlay.style.opacity = "0";
+            }
+        }
+
+        // --- DISCHARGE LANTERN CORE FLUIDS SWEEP TRIGGER ---
+        function executeLanternFlash() {
+            if (!gameActive || weaponCharge < weaponFireCost) return;
+            
+            weaponCharge -= weaponFireCost;
+            playWeaponSound();
+
+            const primaryIntensity = flashlight.intensity;
+            flashlight.intensity = 24.0;
+            flashlight.coneMeshHelper.visible = true;
+            
+            setTimeout(() => {
+                flashlight.intensity = primaryIntensity;
+                flashlight.coneMeshHelper.visible = false;
+            }, 160);
+
+            const aimDirectionVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).normalize();
+            const originPosition = playerContainer.position;
+
+            for (let idx = dorims.length - 1; idx >= 0; idx--) {
+                const targetAnomaly = dorims[idx];
+                const distanceVector = new THREE.Vector3().subVectors(targetAnomaly.position, originPosition);
+                const absoluteDistance = distanceVector.length();
+                
+                if (absoluteDistance < 28.0) { 
+                    distanceVector.normalize();
+                    const trackingDotScalar = aimDirectionVector.dot(distanceVector);
+                    
+                    if (trackingDotScalar > 0.78) { 
+                        scene.remove(targetAnomaly);
+                        dorims.splice(idx, 1);
+                    }
                 }
             }
         }
 
-        if (!isPaused && !restPhaseActive) {
-            totalLife -= 0.016; // Approx 60fps
-            applyTapeDecay();
+        // --- USER SYSTEM CONTROLS MAPPING INTERFACES ---
+        function setupDesktopInputLayout() {
+            const viewportContainer = document.body;
+            viewportContainer.addEventListener('click', () => {
+                if(gameActive && platform === 'desktop') viewportContainer.requestPointerLock();
+            });
+            window.addEventListener('mousedown', (e) => {
+                if(document.pointerLockElement === viewportContainer && e.button === 0) executeLanternFlash();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === viewportContainer && gameActive) {
+                    cameraRotation.y -= e.movementX * 0.0022;
+                    cameraRotation.x -= e.movementY * 0.0020;
+                    cameraRotation.x = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, cameraRotation.x));
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                const characterKey = e.key.toLowerCase();
+                if(characterKey in keys) keys[characterKey] = true;
+                if(e.key === 'Shift') keys.shift = true;
+            });
+            window.addEventListener('keyup', (e) => {
+                const characterKey = e.key.toLowerCase();
+                if(characterKey in keys) keys[characterKey] = false;
+                if(e.key === 'Shift') keys.shift = false;
+            });
         }
 
-        checkMilestones();
-        updateVisualShift();
-        renderGrain();
-        requestAnimationFrame(update);
-    }
+        function setupMobileInputLayout() {
+            const zone = document.getElementById('joy-zone');
+            const knob = document.getElementById('joy-knob');
 
-    function handleBlink() {
-        const now = Date.now();
-        if (now - lastBlinkTime > 500) {
-            totalLife -= 5;
-            applyBlinkMuffle();
-            lastBlinkTime = now;
+            zone.addEventListener('touchstart', (e) => {
+                joystickActive = true;
+                const touchPoint = e.touches[0];
+                joystickStart = { x: touchPoint.clientX, y: touchPoint.clientY };
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!joystickActive) {
+                    if(e.touches.length > 0 && e.touches[0].clientX > window.innerWidth / 2) {
+                        cameraRotation.y -= 0.035;
+                    }
+                    return;
+                }
+                
+                for(let i=0; i<e.touches.length; i++) {
+                    const activeTouch = e.touches[i];
+                    if(Math.hypot(activeTouch.clientX - joystickStart.x, activeTouch.clientY - joystickStart.y) < window.innerWidth/2) {
+                        let movementDeltaX = activeTouch.clientX - joystickStart.x;
+                        let movementDeltaY = activeTouch.clientY - joystickStart.y;
+                        const absoluteDistance = Math.hypot(movementDeltaX, movementDeltaY);
+                        
+                        if (absoluteDistance > maxJoystickDelta) {
+                            movementDeltaX = (movementDeltaX / absoluteDistance) * maxJoystickDelta;
+                            movementDeltaY = (movementDeltaY / absoluteDistance) * maxJoystickDelta;
+                        }
+                        
+                        knob.style.transform = `translate(${movementDeltaX}px, ${movementDeltaY}px)`;
+                        moveVector.x = movementDeltaX / maxJoystickDelta;
+                        moveVector.z = movementDeltaY / maxJoystickDelta;
+                    }
+                }
+            });
+
+            window.addEventListener('touchend', () => {
+                joystickActive = false;
+                knob.style.transform = 'translate(0px, 0px)';
+                moveVector = { x: 0, z: 0 };
+            });
+
+            let horizontalTrackerX = 0;
+            window.addEventListener('touchstart', (e) => {
+                if(e.touches[0].clientX > window.innerWidth / 2) horizontalTrackerX = e.touches[0].clientX;
+            });
+            window.addEventListener('touchmove', (e) => {
+                if(e.touches[0].clientX > window.innerWidth / 2 && !joystickActive) {
+                    let modernX = e.touches[0].clientX;
+                    cameraRotation.y += (modernX - horizontalTrackerX) * 0.006;
+                    horizontalTrackerX = modernX;
+                }
+            });
+
+            document.getElementById('btn-mobile-fire').addEventListener('touchstart', (e) => {
+                e.preventDefault(); executeLanternFlash();
+            });
+        }
+
+        // --- PHYSICAL GRAPH ENVIRONMENT PIPELINE BUILDER ---
+        function buildWorldGeometry() {
+            const mountingContainer = document.getElementById('canvas-container');
             
-            if (totalLife <= 0 && !hasEnded) {
-                endSimulation();
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xdce5ed); 
+            scene.fog = new THREE.FogExp2(0xdce5ed, 0.038);
+
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            playerContainer = new THREE.Object3D();
+            playerContainer.position.set(0, 1.6, 50);
+            playerContainer.add(camera);
+            scene.add(playerContainer);
+
+            flashlight = new THREE.SpotLight(0xffffff, 5.0, 45, Math.PI / 4.2, 0.4, 1.2);
+            flashlight.position.set(0, 0, 0);
+            flashlight.target = new THREE.Object3D();
+            flashlight.target.position.set(0, 0, -1);
+            camera.add(flashlight);
+            camera.add(flashlight.target);
+
+            const trackingConeGeo = new THREE.ConeGeometry(7.0, 28, 8, 1, true);
+            trackingConeGeo.rotateX(-Math.PI / 2);
+            trackingConeGeo.translate(0, 0, -14);
+            const coneMaterialMesh = new THREE.MeshBasicMaterial({color: 0xff00ea, transparent: true, opacity: 0.04, wireframe: true});
+            flashlight.coneMeshHelper = new THREE.Mesh(trackingConeGeo, coneMaterialMesh);
+            flashlight.coneMeshHelper.visible = false;
+            camera.add(flashlight.coneMeshHelper);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            mountingContainer.appendChild(renderer.domElement);
+
+            const skyAmbientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(skyAmbientLight);
+
+            const directSunLight = new THREE.DirectionalLight(0xe4edff, 0.45);
+            directSunLight.position.set(40, 80, 20);
+            directSunLight.castShadow = true;
+            directSunLight.shadow.mapSize.width = 2048;
+            directSunLight.shadow.mapSize.height = 2048;
+            scene.add(directSunLight);
+
+            const terrainGeo = new THREE.PlaneGeometry(mapSize * 2.5, mapSize * 2.5, 80, 80);
+            const trackingPositions = terrainGeo.attributes.position;
+            
+            for (let i = 0; i < trackingPositions.count; i++) {
+                let coordX = trackingPositions.getX(i);
+                let coordY = trackingPositions.getY(i);
+                let absoluteElevationZ = Math.sin(coordX * 0.04) * Math.cos(coordY * 0.04) * 1.8 + Math.cos(coordX * 0.08) * 0.4;
+                trackingPositions.setZ(i, absoluteElevationZ);
+            }
+            terrainGeo.computeVertexNormals();
+
+            const terrainMat = new THREE.MeshStandardMaterial({ 
+                color: 0xabbcc9, roughness: 0.95, metalness: 0.0, flatShading: true 
+            });
+            const terrainPlaneMesh = new THREE.Mesh(terrainGeo, terrainMat);
+            terrainPlaneMesh.rotation.x = -Math.PI / 2;
+            terrainPlaneMesh.receiveShadow = true;
+            scene.add(terrainPlaneMesh);
+
+            proceduralForestSpawningSystem();
+            deployQuantumFlowers();
+            instantiateCentralMatrixEntity();
+
+            const helperRingGeo = new THREE.TorusGeometry(4.5, 0.04, 6, 36);
+            const helperRingMat = new THREE.MeshBasicMaterial({ color: 0xff00ea, transparent: true, opacity: 0 });
+            collectionRingHelper = new THREE.Mesh(helperRingGeo, helperRingMat);
+            collectionRingHelper.rotation.x = Math.PI / 2;
+            scene.add(collectionRingHelper);
+
+            window.addEventListener('resize', handleViewportResizing);
+        }
+
+        function sampleTopologyElevation(x, z) {
+            return Math.sin(x * 0.04) * Math.cos(z * 0.04) * 1.8 + Math.cos(x * 0.08) * 0.4;
+        }
+
+        function proceduralForestSpawningSystem() {
+            const absoluteDensityCount = 420;
+            const treeTrunkGeo = new THREE.CylinderGeometry(0.12, 0.35, 14, 4);
+            const leafyCrownGeo = new THREE.DodecahedronGeometry(2.5, 0);
+            
+            const timberMat = new THREE.MeshStandardMaterial({ color: 0x484d52, roughness: 0.9 });
+            const foliageMat = new THREE.MeshStandardMaterial({ color: 0x8fa0ae, roughness: 0.8, flatShading: true });
+
+            for (let i = 0; i < absoluteDensityCount; i++) {
+                const sampleX = (Math.random() - 0.5) * (mapSize * 2.3);
+                const sampleZ = (Math.random() - 0.5) * (mapSize * 2.3);
+                
+                if (Math.hypot(sampleX, sampleZ) < 20 || Math.hypot(sampleX, sampleZ - 50) < 10) continue;
+
+                const corporateGroup = new THREE.Group();
+                const floorHeightY = sampleTopologyElevation(sampleX, sampleZ);
+
+                const trunkMesh = new THREE.Mesh(treeTrunkGeo, timberMat);
+                trunkMesh.position.y = 7;
+                trunkMesh.castShadow = true;
+                corporateGroup.add(trunkMesh);
+
+                const foliageMesh = new THREE.Mesh(leafyCrownGeo, foliageMat);
+                foliageMesh.position.y = 13;
+                foliageMesh.scale.set(1.1, 1.6, 1.1);
+                foliageMesh.castShadow = true;
+                corporateGroup.add(foliageMesh);
+
+                corporateGroup.position.set(sampleX, floorHeightY, sampleZ);
+                scene.add(corporateGroup);
+                trees.push(corporateGroup);
             }
         }
-        
-        if (restPhaseActive) {
-            // While eyes are closed during rest, timer effectively "pauses" elsewhere 
-            // but we use this to fulfill the requirement.
-        }
-    }
 
-    function handleEyesOpen() {
-        if (restPhaseActive) {
-            totalLife -= 0.33; // Penalty: 20 seconds per second
-        }
-    }
+        function deployQuantumFlowers() {
+            const matrixCoordinates = [
+                {x: -50, z: -50}, {x: 55, z: -60}, {x: -60, z: 55}, {x: 50, z: 45}
+            ];
 
-    function checkMilestones() {
-        const currentMilestone = milestones.find(m => Math.abs(m.age - totalLife) < 0.5);
-        if (currentMilestone && textContent.innerText !== currentMilestone.text) {
-            textContent.innerText = currentMilestone.text;
+            const internalCalyxGeo = new THREE.OctahedronGeometry(0.7, 0);
+            const stemTubeGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.5);
+            const standardStemMat = new THREE.MeshStandardMaterial({ color: 0x2d353c });
+
+            matrixCoordinates.forEach((coord, markerIndex) => {
+                const compositeFlowerGroup = new THREE.Group();
+                const landscapeElevationY = sampleTopologyElevation(coord.x, coord.z);
+
+                const glowingCoreMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x00f3ff, emissive: 0x0055aa, roughness: 0.1, metalness: 0.9
+                });
+
+                const stemMesh = new THREE.Mesh(stemTubeGeo, standardStemMat);
+                stemMesh.position.y = 1.25;
+                compositeFlowerGroup.add(stemMesh);
+
+                const calyxMesh = new THREE.Mesh(internalCalyxGeo, glowingCoreMat);
+                calyxMesh.position.y = 2.4;
+                calyxMesh.name = "glowing_node_calyx";
+                compositeFlowerGroup.add(calyxMesh);
+
+                const radiantLight = new THREE.PointLight(0x00f3ff, 2.5, 14);
+                radiantLight.position.y = 2.8;
+                compositeFlowerGroup.add(radiantLight);
+
+                const boundaryRingGeo = new THREE.RingGeometry(4.45, 4.5, 24);
+                const boundaryRingMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+                const structureRingMesh = new THREE.Mesh(boundaryRingGeo, boundaryRingMat);
+                structureRingMesh.rotation.x = -Math.PI / 2;
+                structureRingMesh.position.y = 0.05;
+                compositeFlowerGroup.add(structureRingMesh);
+
+                compositeFlowerGroup.position.set(coord.x, landscapeElevationY, coord.z);
+                compositeFlowerGroup.userData = { targetId: markerIndex, harvested: false };
+                
+                scene.add(compositeFlowerGroup);
+                flowers.push(compositeFlowerGroup);
+            });
+        }
+
+        function instantiateCentralMatrixEntity() {
+            queenPimporin = new THREE.Group();
+            const rootBaseY = sampleTopologyElevation(0, 0);
+            queenPimporin.position.set(0, rootBaseY, 0);
+
+            const centralNucleusGeo = new THREE.IcosahedronGeometry(3.0, 0);
+            const centralNucleusMat = new THREE.MeshStandardMaterial({
+                color: 0xff00ea, emissive: 0x440055, roughness: 0.2, metalness: 0.8, wireframe: true
+            });
             
-            if (currentMilestone.forced) {
-                triggerRestPhase(currentMilestone.duration);
-            }
+            const matrixNucleusMesh = new THREE.Mesh(centralNucleusGeo, centralNucleusMat);
+            matrixNucleusMesh.position.y = 5.5;
+            matrixNucleusMesh.name = "abstract_nucleus_mesh";
+            queenPimporin.add(matrixNucleusMesh);
+
+            const secondaryRingGeo = new THREE.TorusGeometry(6.0, 0.08, 4, 32);
+            const secondaryRingMat = new THREE.MeshStandardMaterial({ color: 0x00f3ff, wireframe: true });
+            const structuralRingMesh = new THREE.Mesh(secondaryRingGeo, secondaryRingMat);
+            structuralRingMesh.position.y = 5.5;
+            structuralRingMesh.rotation.x = Math.PI / 2;
+            structuralRingMesh.name = "outer_matrix_gyro_ring";
+            queenPimporin.add(structuralRingMesh);
+
+            const localizedPointLight = new THREE.PointLight(0xff00ea, 4.0, 35);
+            localizedPointLight.position.set(0, 6, 0);
+            queenPimporin.add(localizedPointLight);
+
+            scene.add(queenPimporin);
         }
-    }
 
-    async function triggerRestPhase(duration) {
-        restPhaseActive = true;
-        if (audioCtx) audioCtx.suspend();
-        
-        setTimeout(() => {
-            restPhaseActive = false;
-            if (audioCtx) audioCtx.resume();
-        }, duration * 1000);
-    }
+        // --- NEW FEATURE: EVIL DORIMS DIRECTIONAL BEACON AND LIGHT GENERATION ---
+        function spawnAnomalyDorim() {
+            const rotationalRadian = Math.random() * Math.PI * 2;
+            const offsetDistance = 22 + Math.random() * 10; 
+            const targetX = playerContainer.position.x + Math.cos(rotationalRadian) * offsetDistance;
+            const targetZ = playerContainer.position.z + Math.sin(rotationalRadian) * offsetDistance;
+            const structuralY = sampleTopologyElevation(targetX, targetZ);
 
-    function endSimulation() {
-        isGameOver = true;
-        hasEnded = true;
-        if (audioCtx) audioCtx.close();
-        
-        video.style.opacity = "0.1";
-        textContent.innerHTML = `
-            <p>"You were here for seven minutes. In that time, the world moved on."</p>
-            <p>"You are now 2,100 blinks closer to your real end than when you started."</p>
-            <p>"It was a very quiet life. We hope you enjoyed the view."</p>
-        `;
+            const anomalyCompositeGroup = new THREE.Group();
 
-        setTimeout(() => {
-            textContent.style.opacity = "0";
-            video.style.opacity = "0";
-            setTimeout(() => {
-                document.getElementById('void-dot').style.display = "block";
-                // Final shrink would be handled by CSS animation or JS
-            }, 5000);
-        }, 10000);
-    }
+            const shellGeometry = new THREE.DodecahedronGeometry(0.9, 0);
+            const shellMaterialMat = new THREE.MeshStandardMaterial({ 
+                color: 0x0d031a, emissive: 0x220115, roughness: 0.4, flatShading: true
+            });
+            const shellMesh = new THREE.Mesh(shellGeometry, shellMaterialMat);
+            shellMesh.position.y = 0.9;
+            shellMesh.castShadow = true;
+            shellMesh.name = "hostile_geometry_shell";
+            anomalyCompositeGroup.add(shellMesh);
 
-    startBtn.onclick = async () => {
-        startBtn.style.display = "none";
-        await initMediaPipe();
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        await initAudio();
-        update();
-    };
+            const pupilSphereGeo = new THREE.SphereGeometry(0.1, 4, 4);
+            const pupilMaterialMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+            
+            const ocularCoordinatesArray = [
+                {x: 0.25, y: 1.1, z: -0.65}, {x: -0.2, y: 0.95, z: -0.7},
+                {x: 0.05, y: 1.3, z: -0.58}, {x: -0.35, y: 1.2, z: -0.5}
+            ];
 
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
+            ocularCoordinatesArray.forEach(coords => {
+                const individualEyeMesh = new THREE.Mesh(pupilSphereGeo, pupilMaterialMat);
+                individualEyeMesh.position.set(coords.x, coords.y - 0.9, coords.z);
+                shellMesh.add(individualEyeMesh);
+            });
 
-</script>
+            // Added dynamic structural beacon parameters for visibility handling
+            const monsterLanternLight = new THREE.PointLight(0xff0055, 3.5, 18.0, 1.5);
+            monsterLanternLight.position.set(0, 1.2, 0);
+            anomalyCompositeGroup.add(monsterLanternLight);
+
+            const ringTrackingGeo = new THREE.RingGeometry(1.2, 1.4, 16);
+            const ringTrackingMat = new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+            const haloFloorMesh = new THREE.Mesh(ringTrackingGeo, ringTrackingMat);
+            haloFloorMesh.rotation.x = -Math.PI / 2;
+            haloFloorMesh.position.y = -0.8;
+            anomalyCompositeGroup.add(haloFloorMesh);
+
+            anomalyCompositeGroup.position.set(targetX, structuralY + 0.8, targetZ);
+            scene.add(anomalyCompositeGroup);
+            dorims.push(anomalyCompositeGroup);
+            
+            playSpawnSound();
+        }
+
+        function handleViewportResizing() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- CORE REAL-TIME SIMULATION ENGINE ---
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+
+            const runtimeDelta = clock.getDelta();
+            const processTimeSeconds = clock.getElapsedTime();
+
+            if (weaponCharge < weaponMaxCharge) {
+                weaponCharge = Math.min(weaponMaxCharge, weaponCharge + (weaponRechargeRate * runtimeDelta));
+            }
+            document.getElementById('weapon-charge-bar').style.width = `${weaponCharge}%`;
+
+            let isRunningIntent = (platform === 'desktop') ? (keys.shift && (keys.w || keys.s || keys.a || keys.d)) : (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.85);
+            
+            if (isStaminaExhausted) {
+                stamina = Math.min(maxStamina, stamina + (staminaRegenRate * runtimeDelta));
+                if (stamina >= 30.0) isStaminaExhausted = false; 
+            } else if (isRunningIntent) {
+                stamina = Math.max(0, stamina - (staminaDrainRate * runtimeDelta));
+                if (stamina <= 0) isStaminaExhausted = true;
+            } else {
+                stamina = Math.min(maxStamina, stamina + (staminaRegenRate * runtimeDelta));
+            }
+            document.getElementById('stamina-bar').style.width = `${stamina}%`;
+
+            const frequencyBarsArray = document.getElementsByClassName('vis-bar');
+            if (trackingActive && isCalibrated) {
+                for (let bar of frequencyBarsArray) {
+                    bar.style.height = `${Math.random() * 18 + 2}px`;
+                    bar.style.backgroundColor = eyesClosed ? "var(--glitch-red)" : "var(--neon-cyan)";
+                }
+            } else if (!trackingActive) {
+                for (let bar of frequencyBarsArray) bar.style.height = `4px`;
+            }
+
+            if (eyesClosed && !lastEyeState) {
+                spawnAnomalyDorim();
+                playBlinkSound();
+            }
+            lastEyeState = eyesClosed;
+
+            playerContainer.rotation.y = cameraRotation.y;
+            camera.rotation.x = cameraRotation.x;
+
+            let translationX = 0, translationZ = 0;
+            let targetSpeedIndex = (isRunningIntent && !isStaminaExhausted) ? 14.5 : 7.5;
+
+            if (platform === 'desktop') {
+                if (keys.w) translationZ -= 1;
+                if (keys.s) translationZ += 1;
+                if (keys.a) translationX -= 1;
+                if (keys.d) translationX += 1;
+                if (translationX !== 0 || translationZ !== 0) {
+                    let normalLength = Math.hypot(translationX, translationZ);
+                    translationX /= normalLength; translationZ /= normalLength;
+                }
+            } else {
+                translationX = moveVector.x;
+                translationZ = moveVector.z;
+            }
+
+            const matrixForwardZ = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerContainer.rotation.y);
+            const matrixRightX = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerContainer.rotation.y);
+
+            playerContainer.position.addScaledVector(matrixForwardZ, translationZ * targetSpeedIndex * runtimeDelta);
+            playerContainer.position.addScaledVector(matrixRightX, translationX * targetSpeedIndex * runtimeDelta);
+
+            playerContainer.position.x = Math.max(-mapSize + 6, Math.min(mapSize - 6, playerContainer.position.x));
+            playerContainer.position.z = Math.max(-mapSize + 6, Math.min(mapSize - 6, playerContainer.position.z));
+            playerContainer.position.y = 1.6 + sampleTopologyElevation(playerContainer.position.x, playerContainer.position.z);
+
+            if (translationX !== 0 || translationZ !== 0 || (platform === 'mobile' && joystickActive)) {
+                stepSoundTimer += runtimeDelta;
+                let stepRate = (isRunningIntent && !isStaminaExhausted) ? 0.28 : 0.45;
+                if (stepSoundTimer >= stepRate) {
+                    playStepSound(isRunningIntent && !isStaminaExhausted);
+                    stepSoundTimer = 0;
+                }
+            }
+
+            let insideExtractionZone = false;
+            let focusedTargetFlowerGroup = null;
+
+            flowers.forEach(flower => {
+                if (flower.userData.harvested) return;
+                let calculationFlatDistance = Math.hypot(playerContainer.position.x - flower.position.x, playerContainer.position.z - flower.position.z);
+                if (calculationFlatDistance < 4.5) { insideExtractionZone = true; focusedTargetFlowerGroup = flower; }
+            });
+
+            const actionPromptUI = document.getElementById('action-prompt');
+            const progressContainerUI = document.getElementById('action-progress-container');
+            const progressBarUI = document.getElementById('action-progress-bar');
+
+            if (insideExtractionZone) {
+                collectionRingHelper.position.set(focusedTargetFlowerGroup.position.x, focusedTargetFlowerGroup.position.y + 0.05, focusedTargetFlowerGroup.position.z);
+                collectionRingHelper.material.opacity = 0.8;
+
+                if (!eyesClosed) {
+                    actionPromptUI.innerHTML = "QUANTUM EXTRACTION NODE COMPATIBLE.<br><span class='danger-text'>SEAL EYELIDS</span> TO INITIATE RE-MAPPING TRANSCRIPTS.";
+                    progressContainerUI.style.display = 'none';
+                    eyeClosureTimer = 0;
+                } else {
+                    actionPromptUI.innerHTML = "CAPTURING FIELD VECTORS... <span class='danger-text'>MAINTAIN MATRIX LOCK!</span>";
+                    progressContainerUI.style.display = 'block';
+                    
+                    let priorTimerWhole = Math.floor(eyeClosureTimer);
+                    eyeClosureTimer += runtimeDelta;
+                    
+                    if (Math.floor(eyeClosureTimer) > priorTimerWhole) {
+                        spawnAnomalyDorim();
+                    }
+
+                    progressBarUI.style.width = `${Math.min(100, (eyeClosureTimer / targetClosureTime) * 100)}%`;
+
+                    if (eyeClosureTimer >= targetClosureTime) {
+                        focusedTargetFlowerGroup.userData.harvested = true;
+                        focusedTargetFlowerGroup.scale.set(0, 0, 0);
+                        flowersCollected++;
+                        playCollectionSound();
+                        
+                        document.getElementById('ui-flowers').innerText = `${flowersCollected} / ${totalFlowersNeeded}`;
+                        eyeClosureTimer = 0;
+                        progressContainerUI.style.display = 'none';
+                        collectionRingHelper.material.opacity = 0;
+                        
+                        if (flowersCollected >= totalFlowersNeeded) {
+                            document.getElementById('ui-objective').innerText = "DISCHARGE SYSTEM LOGS INTO THE QUEEN MATRIX ENVELOPE";
+                            document.getElementById('ui-objective').style.color = "var(--neon-magenta)";
+                        }
+                    }
+                }
+            } else {
+                eyeClosureTimer = 0;
+                progressContainerUI.style.display = 'none';
+                collectionRingHelper.material.opacity = 0;
+                
+                if (flowersCollected < totalFlowersNeeded) {
+                    actionPromptUI.innerText = "";
+                } else {
+                    let currentDistanceToMatrixQueen = playerContainer.position.distanceTo(queenPimporin.position);
+                    if (currentDistanceToMatrixQueen < 9.0) {
+                        actionPromptUI.innerHTML = "<span style='color:var(--terminal-green); font-weight:bold;'>CORE SYNCHRONIZED</span><br>GENERATE MOVEMENT LOOPS TO DISCHARGE DATA WORKSPACE";
+                        if(keys.w || keys.s || keys.a || keys.d || joystickActive || eyesClosed) triggerSimulationVictory();
+                    } else {
+                        actionPromptUI.innerText = "NAVIGATE SECURED WORKSPACE BACK TO CENTRAL ENVELOPE ATOM ORIGIN";
+                    }
+                }
+            }
+
+            // --- RE-ENGINEERED: VECTOR THREAT PATHFINDING & ADVANCED BEACON HUD SYSTEM ---
+            let primaryShortestEntityDistance = 1200.0;
+            const entityMovementSpeedCalculated = 4.2 + (flowersCollected * 0.7);
+            const radarElement = document.getElementById('proximity-radar-indicator');
+            let behindThreatDetected = false;
+
+            for (let idx = dorims.length - 1; idx >= 0; idx--) {
+                const individualDorim = dorims[idx];
+                let destinationHeadingVector = new THREE.Vector3().subVectors(playerContainer.position, individualDorim.position);
+                destinationHeadingVector.y = 0; 
+                destinationHeadingVector.normalize();
+
+                let floorYCoordinate = sampleTopologyElevation(individualDorim.position.x, individualDorim.position.z);
+                let proceduralHoverMotion = Math.abs(Math.sin(processTimeSeconds * 3.8 + idx)) * 0.45;
+                
+                let dynamicVelocityIndex = insideExtractionZone ? entityMovementSpeedCalculated * 0.30 : entityMovementSpeedCalculated;
+
+                individualDorim.position.addScaledVector(destinationHeadingVector, dynamicVelocityIndex * runtimeDelta);
+                individualDorim.position.y = floorYCoordinate + 0.7 + proceduralHoverMotion;
+                
+                let rotationalMeshShell = individualDorim.getObjectByName("hostile_geometry_shell");
+                if (rotationalMeshShell) {
+                    rotationalMeshShell.rotation.y += 0.06;
+                    rotationalMeshShell.rotation.z += 0.02;
+                }
+
+                let computationalFlatDistance = Math.hypot(playerContainer.position.x - individualDorim.position.x, playerContainer.position.z - individualDorim.position.z);
+                primaryShortestEntityDistance = Math.min(primaryShortestEntityDistance, computationalFlatDistance);
+
+                // Calculate whether the threat vector is active outside the user's field of view bounds
+                const forwardMatrixVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).normalize();
+                let directionToTarget = new THREE.Vector3().subVectors(individualDorim.position, playerContainer.position).normalize();
+                let viewScalarProduct = forwardMatrixVector.dot(directionToTarget);
+
+                if (viewScalarProduct < 0.25 && computationalFlatDistance < 35.0) {
+                    behindThreatDetected = true;
+                }
+
+                if (!insideExtractionZone && computationalFlatDistance < 1.4) {
+                    terminateApplicationLoop();
+                    break;
+                }
+            }
+
+            // Dynamic Proximity HUD Trigger Engine Logic Updates
+            if (behindThreatDetected && dorims.length > 0) {
+                radarElement.style.opacity = "0.85";
+                let pulseFrequencyScalar = Math.max(100, primaryShortestEntityDistance * 25);
+                radarElement.style.transform = `translate(-50%, -50%) scale(${1 + Math.sin(Date.now() / pulseFrequencyScalar) * 0.25})`;
+            } else {
+                radarElement.style.opacity = "0";
+            }
+
+            flowers.forEach(flower => {
+                if (!flower.userData.harvested) {
+                    let structureCalyxNode = flower.getObjectByName("glowing_node_calyx");
+                    if (structureCalyxNode) structureCalyxNode.rotation.y += 0.025;
+                }
+            });
+
+            if (queenPimporin) {
+                let structuralNucleusNode = queenPimporin.getObjectByName("abstract_nucleus_mesh");
+                let structuralGyroRingNode = queenPimporin.getObjectByName("outer_matrix_gyro_ring");
+                if (structuralNucleusNode) structuralNucleusNode.rotation.y -= 0.008;
+                if (structuralGyroRingNode) { 
+                    structuralGyroRingNode.rotation.z += 0.015; 
+                    structuralGyroRingNode.rotation.y += 0.006; 
+                }
+            }
+
+            if (isAudioInitialized && proximityDangerGain && dorims.length > 0) {
+                let scaledProximityIndex = Math.max(0.001, 1.0 - (primaryShortestEntityDistance / 32.0));
+                let compoundGainIntensity = Math.min(0.7, Math.max(0.001, scaledProximityIndex * scaledProximityIndex));
+                proximityDangerGain.gain.setValueAtTime(compoundGainIntensity, audioCtx.currentTime);
+            } else if (isAudioInitialized && proximityDangerGain) {
+                proximityDangerGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // --- PROTOCOL CLOSURE AND UN-MOUNT HANDLING ---
+        function initGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            
+            initAudioEngine();
+
+            if (platform === 'mobile') {
+                document.getElementById('mobile-controls').style.display = 'block';
+                setupMobileInputLayout();
+            } else {
+                setupDesktopInputLayout();
+            }
+            
+            setupBiometricsModule();
+            buildWorldGeometry();
+            
+            gameActive = true;
+            clock = new THREE.Clock();
+            animate();
+        }
+
+        function terminateApplicationLoop() {
+            gameActive = false;
+            document.exitPointerLock();
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('mobile-controls').style.display = 'none';
+            document.getElementById('gameover-screen').style.display = 'flex';
+            if (isAudioInitialized && proximityDangerGain) proximityDangerGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            playGameOverSound();
+        }
+
+        function triggerSimulationVictory() {
+            gameActive = false;
+            document.exitPointerLock();
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('mobile-controls').style.display = 'none';
+            document.getElementById('win-screen').style.display = 'flex';
+            if (isAudioInitialized && proximityDangerGain) proximityDangerGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        }
+    </script>
 </body>
 </html>
