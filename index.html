@@ -2,1589 +2,430 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MINIMAL CREAKS BY THE WOODS // PROTOCOL_OVERDRIVE</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraWave - Immersive Audio Experience</title>
+    <!-- Tailwind CSS for sleek UI -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- MediaPipe Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/vision_bundle.js" crossorigin="anonymous"></script>
     <style>
-        :root {
-            --neon-magenta: #ff00ea;
-            --neon-cyan: #00f3ff;
-            --liminal-white: #f0f4f8;
-            --void-black: #05030a;
-            --glitch-red: #ff0055;
-            --glass-sheen: rgba(12, 8, 24, 0.85);
-            --crt-glow: 0 0 25px rgba(0, 243, 255, 0.45);
-            --terminal-green: #00ffaa;
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
         }
-
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            margin: 0;
-            padding: 0;
+        /* Pulse animation for the camera status */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--void-black);
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--liminal-white);
-        }
-
-        body::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 9999;
-            background-size: 100% 4px, 6px 100%;
-            pointer-events: none;
-        }
-
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0; left: 0;
-            z-index: 1;
-        }
-
-        .screen {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 100;
-            background: radial-gradient(circle at center, #140b24 0%, #020105 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            overflow-y: auto;
-        }
-
-        .terminal-header {
-            width: 100%;
-            max-width: 850px;
-            background: rgba(0, 243, 255, 0.1);
-            border: 2px solid var(--neon-cyan);
-            border-bottom: none;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: var(--neon-cyan);
-            box-shadow: 0 -5px 15px rgba(0, 243, 255, 0.1);
-        }
-
-        .terminal-dots {
-            display: flex;
-            gap: 8px;
-        }
-
-        .tdot {
-            width: 12px; height: 12px; border-radius: 50%;
-        }
-        .tdot-r { background: var(--glitch-red); }
-        .tdot-y { background: #ffaa00; }
-        .tdot-g { background: var(--terminal-green); }
-
-        h1 {
-            font-size: 3.2rem;
-            color: var(--liminal-white);
-            text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan);
-            margin-bottom: 5px;
-            letter-spacing: 6px;
-            font-weight: 900;
-            animation: textGlitch 5s infinite linear alternate-reverse;
-        }
-
-        @keyframes textGlitch {
-            0% { text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan); }
-            35% { text-shadow: -3px 2px 0px var(--neon-magenta), 3px -2px 0px var(--neon-cyan); filter: hue-rotate(45deg); }
-            70% { text-shadow: 2px -3px 0px var(--neon-magenta), -2px 2px 0px var(--neon-cyan); filter: blur(0.5px); }
-            100% { text-shadow: 3px 3px 0px var(--neon-magenta), -3px -3px 0px var(--neon-cyan); }
-        }
-
-        .subtitle {
-            font-size: 1rem;
-            color: var(--neon-cyan);
-            margin-bottom: 25px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .container-box {
-            background: var(--glass-sheen);
-            border: 2px solid var(--neon-cyan);
-            padding: 35px;
-            max-width: 850px;
-            width: 100%;
-            backdrop-filter: blur(25px);
-            box-shadow: var(--crt-glow), inset 0 0 25px rgba(0, 243, 255, 0.15);
-            text-align: left;
-        }
-
-        .instructions {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            margin-bottom: 30px;
-            color: #cbd5e1;
-            max-height: 280px;
-            overflow-y: auto;
-            padding-right: 15px;
-            border-bottom: 1px dashed var(--neon-magenta);
-        }
-
-        .instructions::-webkit-scrollbar { width: 6px; }
-        .instructions::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-        .instructions::-webkit-scrollbar-thumb { background: var(--neon-magenta); }
-
-        .instruct-row {
-            margin-bottom: 15px;
-            padding-left: 15px;
-            border-left: 3px solid var(--neon-cyan);
-        }
-        .instruct-row.danger { border-left-color: var(--glitch-red); }
-
-        highlight {
-            color: var(--neon-cyan);
-            font-weight: bold;
-            background: rgba(0, 243, 255, 0.12);
-            padding: 2px 6px;
-        }
-        highlight.danger {
-            color: var(--glitch-red);
-            background: rgba(255, 0, 85, 0.12);
-        }
-
-        .btn {
-            background: transparent;
-            border: 2px solid var(--neon-magenta);
-            color: #fff;
-            padding: 16px 45px;
-            font-size: 1.1rem;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            letter-spacing: 4px;
-            font-weight: bold;
-            display: block;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .btn:hover {
-            background: var(--neon-magenta);
-            box-shadow: 0 0 30px var(--neon-magenta);
-            color: #000;
-            transform: scale(1.03);
-        }
-
-        .options-group {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .radio-label {
-            cursor: pointer;
-            border: 2px dashed #4b367c;
-            padding: 14px 28px;
-            background: rgba(255,255,255,0.02);
-            transition: all 0.2s ease;
-            font-weight: bold;
-            letter-spacing: 1px;
-            flex: 1;
-            text-align: center;
-        }
-        .radio-label input { display: none; }
-        .radio-label.active {
-            border: 2px solid var(--neon-cyan);
-            background: rgba(0, 243, 255, 0.1);
-            color: var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
-        }
-
-        #hud {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            display: none;
-            box-shadow: inset 0 0 120px rgba(0,0,0,0.85);
-        }
-
-        .hud-panel {
-            position: absolute;
-            background: rgba(4, 2, 10, 0.88);
-            border: 1px solid var(--neon-cyan);
-            padding: 20px;
-            backdrop-filter: blur(12px);
-            pointer-events: auto;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        #stats-panel { top: 30px; left: 30px; width: 320px; }
-        #cam-status-panel { top: 30px; right: 30px; text-align: right; width: 320px; }
-        
-        .meter-container {
-            margin-top: 8px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid #3d285c;
-            height: 10px;
-            position: relative;
-        }
-        .meter-bar {
-            width: 100%; height: 100%;
-            transition: width 0.05s linear;
-        }
-        #weapon-charge-bar { background: linear-gradient(90deg, var(--neon-magenta), var(--neon-cyan)); }
-        #stamina-bar { background: linear-gradient(90deg, #ff9900, #ffea00); }
-
-        #crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 32px; height: 32px;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            opacity: 0.75;
-        }
-        #crosshair::before, #crosshair::after {
-            content: ''; position: absolute; background: var(--neon-cyan);
-        }
-        #crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
-        #crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
-
-        #proximity-radar-indicator {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 64px; height: 64px;
-            transform: translate(-50%, -50%);
-            border: 2px dashed var(--glitch-red);
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease;
-        }
-
-        #action-prompt {
-            position: absolute;
-            bottom: 220px; left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            text-shadow: 0 3px 10px #000;
-            font-weight: bold;
-            color: #fff;
-            text-align: center;
-            width: 85%;
-            letter-spacing: 2px;
-            line-height: 1.6;
-        }
-
-        #action-progress-container {
-            position: absolute;
-            bottom: 180px; left: 50%;
-            transform: translateX(-50%);
-            width: 320px;
-            max-width: 90%;
-            background: rgba(0,0,0,0.95);
-            border: 2px solid var(--neon-magenta);
-            height: 16px;
-            display: none;
-        }
-        #action-progress-bar {
-            width: 0%; height: 100%;
-            background: var(--neon-magenta);
-            box-shadow: 0 0 15px var(--neon-magenta);
-        }
-
-        #audio-visualizer {
-            display: flex; justify-content: space-between;
-            height: 16px; width: 100%; margin-top: 12px;
-        }
-        .vis-bar {
-            width: 7%; background: var(--neon-cyan);
-            opacity: 0.75; transition: height 0.05s ease;
-        }
-
-        #blink-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #030107;
-            z-index: 500; opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.04s ease-in-out;
-        }
-
-        #flash-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff;
-            z-index: 499; opacity: 0;
-            pointer-events: none;
-        }
-
-        #webcam-video {
-            position: absolute;
-            bottom: 30px; right: 30px;
-            width: 140px; height: 105px;
-            object-fit: cover;
-            border: 2px solid var(--neon-magenta);
-            transform: scaleX(-1);
-            z-index: 50;
-            box-shadow: 0 0 20px rgba(255,0,234,0.35);
-            display: none;
-            background: #000;
-        }
-
-        #mobile-controls {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 260px;
-            z-index: 80; display: none; pointer-events: none;
-        }
-        .joystick-zone {
-            position: absolute; bottom: 30px; left: 30px;
-            width: 120px; height: 120px;
-            background: rgba(255,255,255,0.03);
-            border: 2px solid rgba(0, 243, 255, 0.4);
-            border-radius: 50%; pointer-events: auto;
-        }
-        .joystick-knob {
-            position: absolute; top: 40px; left: 40px;
-            width: 40px; height: 40px;
-            background: var(--neon-cyan);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--neon-cyan);
-        }
-        .mobile-btn-container {
-            position: absolute; bottom: 30px; right: 30px;
-            display: flex; gap: 15px; pointer-events: auto;
-        }
-        .mobile-action-btn {
-            width: 75px; height: 75px; border-radius: 50%;
-            color: white; font-weight: bold; font-size: 0.75rem;
-            display: flex; justify-content: center; align-items: center;
-            text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.7);
-            letter-spacing: 1px;
-        }
-        #btn-mobile-eye { background: rgba(255, 0, 234, 0.3); border: 2px solid var(--neon-magenta); }
-        #btn-mobile-fire { background: rgba(0, 243, 255, 0.3); border: 2px solid var(--neon-cyan); }
-        .mobile-action-btn:active { transform: scale(0.9); }
-
-        .status-dot {
-            display: inline-block; width: 10px; height: 10px;
-            border-radius: 50%; background-color: var(--glitch-red); margin-right: 8px;
-        }
-        .status-dot.active { background-color: var(--terminal-green); box-shadow: 0 0 10px var(--terminal-green); }
-        .danger-text { color: var(--glitch-red); font-weight: bold; }
-        .calibrating-text { color: #ffaa00; font-weight: bold; }
-
-        /* Highly Optimized High-End Responsive Mobile Viewports CSS Definitions */
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem !important; letter-spacing: 3px !important; }
-            .subtitle { font-size: 0.8rem !important; margin-bottom: 15px !important; }
-            .container-box { padding: 18px !important; }
-            .instructions { max-height: 160px !important; font-size: 0.85rem !important; margin-bottom: 15px !important; }
-            .options-group { flex-direction: column; gap: 10px; margin-bottom: 15px !important; }
-            .radio-label { padding: 10px 15px !important; font-size: 0.85rem !important; }
-            .btn { padding: 12px 30px !important; font-size: 0.95rem !important; }
-            
-            #stats-panel { top: 15px; left: 15px; width: 170px !important; padding: 10px !important; }
-            #cam-status-panel { top: 15px; right: 15px; width: 160px !important; padding: 10px !important; }
-            #stats-panel div, #cam-status-panel div { font-size: 0.65rem !important; }
-            #stats-panel #ui-flowers { font-size: 0.75rem !important; }
-            .meter-container { height: 6px !important; margin-top: 4px !important; }
-            #audio-visualizer { margin-top: 6px !important; height: 10px !important; }
-            #webcam-video { width: 80px !important; height: 60px !important; bottom: 15px !important; right: 15px !important; }
-            #action-prompt { font-size: 0.85rem !important; bottom: 160px !important; }
-            #action-progress-container { bottom: 130px !important; width: 200px !important; height: 10px !important; }
-        }
+        .pulse-fast { animation: pulse 1s infinite; }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
 
-    <div id="canvas-container"></div>
-    <div id="blink-overlay"></div>
-    <div id="flash-overlay"></div>
-    <div id="proximity-radar-indicator"></div>
-    <video id="webcam-video" autoplay playsinline muted></video>
-
-    <div id="hud">
-        <div id="crosshair"></div>
-        <div id="stats-panel" class="hud-panel">
-            <div style="font-size:1.1rem; color:var(--neon-cyan); font-weight:bold; letter-spacing:1px;">FLOWERS COLLECTED: <span id="ui-flowers" style="color:#fff;">0 / 4</span></div>
-            <div style="font-size:0.8rem; margin-top:6px; text-transform:uppercase;">OBJECTIVE: <span id="ui-objective" style="color:#aaa;">LOCATING EMISSIVE SIGNATURES</span></div>
-            
-            <div style="font-size:0.8rem; margin-top:16px; font-weight:bold; color:var(--neon-magenta)">LANTERN ENERGY CORE:</div>
-            <div class="meter-container"><div id="weapon-charge-bar" class="meter-bar"></div></div>
-            
-            <div style="font-size:0.8rem; margin-top:12px; font-weight:bold; color:#ffaa00">NEURAL STAMINA RESERVE:</div>
-            <div class="meter-container"><div id="stamina-bar" class="meter-bar"></div></div>
-        </div>
-        
-        <div id="cam-status-panel" class="hud-panel">
-            <div style="font-size:0.85rem;"><span id="track-dot" class="status-dot"></span>BIOMETRIC ENGINE: <span id="track-text">INITIALIZING FEED</span></div>
-            <div style="font-size:0.95rem; font-weight:bold; color:#fff; margin-top:6px;">OCULAR_MATRIX: <span id="eye-status">SCANNING</span></div>
-            <div id="audio-visualizer">
-                <div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div>
-                <div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div><div class="vis-bar" style="height:4px"></div>
+    <!-- Header -->
+    <header class="border-b border-slate-800/80 backdrop-blur-md bg-slate-950/50 sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
             </div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">AuraWave</span>
         </div>
-        <div id="action-prompt"></div>
-        <div id="action-progress-container">
-            <div id="action-progress-bar"></div>
+        <div id="statusBadge" class="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-xs text-slate-400">
+            <span class="h-2 w-2 rounded-full bg-amber-500 pulse-fast" id="statusDot"></span>
+            <span id="statusText">Initializing MediaPipe...</span>
         </div>
-    </div>
+    </header>
 
-    <div id="start-screen" class="screen">
-        <div class="terminal-header">
-            <div class="terminal-dots"><div class="tdot tdot-r"></div><div class="tdot tdot-y"></div><div class="tdot tdot-g"></div></div>
-            <div>SYSTEM_INITIALIZATION_LOG_V2.5</div>
-        </div>
-        <div class="container-box">
-            <h1 style="text-align: center; margin-bottom: 10px;">CREAKS BY THE WOODS</h1>
-            <div class="subtitle" style="text-align: center;">// PROTOCOL_OVERDRIVE_RECONSTRUCT</div>
-            
-            <div class="instructions">
-                <div class="instruct-row">
-                    <p>⚡ <highlight>THE OBJECTIVE MATRIX:</highlight> Track, isolate, and harvest <highlight>4 Quantum Flowers</highlight> distributed across the plain, then return to the center entity, <highlight>The Pimporin Queen</highlight>, to force physical reality initialization.</p>
-                </div>
-                <div class="instruct-row danger">
-                    <p>⏳ <highlight class="danger">HARVEST TECHNIQUE:</highlight> Stand completely inside a flower's neon protective boundary mesh and <highlight class="danger">CLOSE YOUR EYES FOR 2.5 SECONDS</highlight> continuously to capture reality parameters.</p>
-                </div>
-                <div class="instruct-row danger">
-                    <p>👁️ <highlight class="danger">BIOMETRIC VECTOR THREAT:</highlight> Hostile <highlight class="danger">Evil Dorims</highlight> materialize on the forest plane. They manifest through spatial gaps: <highlight class="danger">EVERY SINGLE TIME YOU BLINK OR SEAL YOUR EYELIDS, A NEW ANOMALY SPAWNS NEARBY.</highlight></p>
-                </div>
-                <div class="instruct-row">
-                    <p>🔮 <highlight>DIRECTIONAL BEACONS:</highlight> Dorims emit high-intensity crimson light beams and tracking matrices. A dynamic <highlight>Proximity Telemetry Radar</highlight> flashes on your HUD screen to warn you of off-screen approaches.</p>
-                </div>
-                <div class="instruct-row">
-                    <p>🛡️ <highlight>KINETIC LANTERN DEFENSE:</highlight> Discharge your <highlight>Lux-Vortex Lantern</highlight> to banish immediate physical threats out of reality phases. Controls: <strong>LEFT CLICK</strong> (Desktop) or <strong>LIGHT BURST BUTTON</strong> (Mobile). Run via <strong>SHIFT</strong> or push joystick all the way up.</p>
+    <!-- Main Content -->
+    <main class="max-w-6xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start flex-grow">
+        
+        <!-- Left Column: Vision & Visualizer -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Camera / Tracking Box -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 glow-effect relative overflow-hidden">
+                <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
+                    <span>EYE-TRACKING FEED</span>
+                    <span id="eyeState" class="text-xs text-indigo-400 font-mono tracking-wider">OPEN</span>
+                </h3>
+                <div class="relative rounded-xl overflow-hidden bg-slate-950 aspect-video flex items-center justify-center border border-slate-800">
+                    <video id="webcam" autoplay playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
+                    <div id="cameraPrompt" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 text-center">
+                        <p class="text-sm text-slate-400 mb-3">Allow camera access to enable the blink-muffle effect.</p>
+                        <button id="startCamBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2 rounded-lg transition-all active:scale-95 shadow-lg shadow-indigo-600/20">Enable Camera</button>
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-bottom: 15px; font-weight: bold; font-size:0.9rem; letter-spacing:2px; color:var(--neon-cyan); text-align:center;">SELECT SYSTEM COGNITIVE INTERFACE:</div>
-            <div class="options-group">
-                <div class="radio-label active" id="opt-desktop" onclick="setPlatform('desktop')">
-                    <input type="radio" name="platform" checked> DESKTOP MOUSE / KEYBOARD
-                </div>
-                <div class="radio-label" id="opt-mobile" onclick="setPlatform('mobile')">
-                    <input type="radio" name="platform"> MOBILE COGNITIVE INTERFACE
+            <!-- Audio Waveform Visualizer -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 glow-effect">
+                <h3 class="text-sm font-semibold text-slate-400 mb-3">AUDIO SPECTRUM</h3>
+                <canvas id="visualizer" class="w-full h-32 bg-slate-950 rounded-xl border border-slate-800"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Column: Audio Upload & FX Controls -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Upload & Playback Dashboard -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 rounded-2xl p-6 glow-effect">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <!-- Custom Upload Button -->
+                    <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/40 hover:bg-slate-950/80 transition-all rounded-xl p-6 cursor-pointer group md:w-2/3">
+                        <svg class="w-8 h-8 text-slate-500 group-hover:text-indigo-400 mb-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-slate-100" id="fileName">Upload local audio file</span>
+                        <span class="text-xs text-slate-500 mt-1">MP3, WAV, FLAC, M4A supported</span>
+                        <input type="file" id="audioFile" accept="audio/*" class="hidden">
+                    </label>
+
+                    <!-- Player Core UI -->
+                    <div class="flex flex-col justify-center items-center md:items-end gap-3 md:w-1/3">
+                        <audio id="audioPlayer" controls class="hidden"></audio>
+                        <button id="playBtn" disabled class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center shadow-inner cursor-not-allowed transition-all duration-300" title="Upload a track first">
+                            <svg class="w-8 h-8 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        </button>
+                        <span class="text-xs text-slate-500 uppercase font-semibold tracking-wider text-center md:text-right" id="trackStatus">No track loaded</span>
+                    </div>
                 </div>
             </div>
 
-            <button class="btn" onclick="initGame()">INITIALIZE SYSTEM LOGIC</button>
+            <!-- FX Grid Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Underwater Effect Panel -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-indigo-400 flex items-center gap-2">
+                                <span class="h-2 w-2 rounded-full bg-blue-400 shadow-md shadow-blue-400/50"></span>
+                                Underwater Muffle
+                            </h4>
+                            <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800/60 px-2 py-0.5 rounded-md">Eye Reactive</span>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Closes your eyes or blinks to activate a low-pass filter, shifting the audio environment entirely underwater.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Filter Frequency</span>
+                            <span id="cutoffVal" class="font-mono">20000 Hz</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                            <div id="cutoffBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-full transition-all duration-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Effects Control Room -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+                    <h4 class="font-semibold text-purple-400 flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full bg-purple-400 shadow-md shadow-purple-400/50"></span>
+                        Acoustic Customizer
+                    </h4>
+                    
+                    <!-- 3D Spatial Panning -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <label for="panSpeed" class="text-slate-300">Auto-Spatial Pan Speed</label>
+                            <span id="panVal" class="font-mono text-slate-500">Off</span>
+                        </div>
+                        <input type="range" id="panSpeed" min="0" max="10" step="0.5" value="0" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                    </div>
+
+                    <!-- Ambient Reverb/Drive -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <label for="driveGain" class="text-slate-300">Warm Analog Drive</label>
+                            <span id="driveVal" class="font-mono text-slate-500">0%</span>
+                        </div>
+                        <input type="range" id="driveGain" min="0" max="100" value="0" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <div id="gameover-screen" class="screen" style="display:none;">
-        <div class="terminal-header" style="border-color: var(--glitch-red); color: var(--glitch-red); background: rgba(255,0,85,0.1);">
-            <div class="terminal-dots"><div class="tdot tdot-r"></div><div class="tdot tdot-r"></div><div class="tdot tdot-r"></div></div>
-            <div>CRITICAL_SYSTEM_FAILURE</div>
-        </div>
-        <div class="container-box" style="border-color: var(--glitch-red); box-shadow: 0 0 35px var(--glitch-red);">
-            <h1 class="danger-text" style="font-size: 3.2rem; margin-bottom:15px; text-align: center;">CONSCIOUSNESS CORRUPTED</h1>
-            <div class="subtitle" id="gameover-reason" style="color:#ffaa00; text-align: center;">ANOMALY INDUCED BIOMETRIC RE-MAPPING COLLAPSE</div>
-            <p style="color:#cbd5e1; font-size:1rem; line-height:1.7; text-align: center; margin-bottom: 30px;">Your local network infrastructure has completely dissolved into noise vectors. Your signature remains trapped inside the looped node parameters indefinitely.</p>
-            <button class="btn" style="border-color:var(--glitch-red);" onclick="location.reload()">RE-BOOT CORE ENGINE</button>
-        </div>
-    </div>
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-600 border-t border-slate-900/60 bg-slate-950/20">
+        Built with Web Audio API & MediaPipe Vision Tasks. Keep eyes open for high fidelity; blink to dive deep.
+    </footer>
 
-    <div id="win-screen" class="screen" style="display:none;">
-        <div class="terminal-header" style="border-color: var(--terminal-green); color: var(--terminal-green); background: rgba(0,255,170,0.1);">
-            <div class="terminal-dots"><div class="tdot tdot-g"></div><div class="tdot tdot-g"></div><div class="tdot tdot-g"></div></div>
-            <div>COMPILATION_SUCCESSFUL</div>
-        </div>
-        <div class="container-box" style="border-color: var(--terminal-green); box-shadow: 0 0 35px rgba(0,255,170,0.35);">
-            <h1 style="color: var(--terminal-green); font-size: 3.2rem; text-shadow: 0 0 25px rgba(0,255,170,0.4); margin-bottom: 15px; text-align: center;">REALITY RESTORED</h1>
-            <div class="subtitle" style="color:#aaffd4; text-align: center;">THE INITIALIZATION MATRIX HAS RETIRED ARCHITECTURE LOOPS</div>
-            <p style="color:#cbd5e1; font-size:1rem; line-height:1.7; text-align: center; margin-bottom: 30px;">Atmospheric distortion fields cease. The loop spatial geometries flatten down back into standard natural constructs. You are safe to disengage.</p>
-            <button class="btn" style="border-color:var(--terminal-green); " onclick="location.reload()">RE-SIMULATE ARCHITECTURE</button>
-        </div>
-    </div>
+    <!-- Main Core Logic Execution -->
+    <script type="module">
+        import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/vision_bundle.js";
 
-    <div id="mobile-controls">
-        <div class="joystick-zone" id="joy-zone"><div class="joystick-knob" id="joy-knob"></div></div>
-        <div class="mobile-btn-container">
-            <div class="mobile-action-btn" id="btn-mobile-eye">SEAL<br>EYES</div>
-            <div class="mobile-action-btn" id="btn-mobile-fire">LIGHT<br>BURST</div>
-        </div>
-    </div>
+        // Global States & Node Architecture Variables
+        let audioCtx, audioSource, analyser, muffleFilter, pannerNode, waveShaperNode;
+        let faceLandmarker;
+        let webcamRunning = false;
+        let animationFrameId;
+        let spatialAngle = 0;
 
-    <script>
-        // --- CORE STATE MATRIX ---
-        let platform = 'desktop';
-        let gameActive = false;
-        let flowersCollected = 0;
-        const totalFlowersNeeded = 4;
+        // DOM Element Configurations
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioFileInput = document.getElementById('audioFile');
+        const playBtn = document.getElementById('playBtn');
+        const fileNameDisplay = document.getElementById('fileName');
+        const trackStatusText = document.getElementById('trackStatus');
+        const startCamBtn = document.getElementById('startCamBtn');
+        const video = document.getElementById('webcam');
+        const cameraPrompt = document.getElementById('cameraPrompt');
         
-        let keys = { w: false, a: false, s: false, d: false, shift: false };
-        let cameraRotation = { x: 0, y: 0 };
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const eyeStateDisplay = document.getElementById('eyeState');
+        const cutoffValDisplay = document.getElementById('cutoffVal');
+        const cutoffBar = document.getElementById('cutoffBar');
         
-        let joystickActive = false;
-        let joystickStart = { x: 0, y: 0 };
-        const maxJoystickDelta = 50;
-        let moveVector = { x: 0, z: 0 };
+        const panSpeedInput = document.getElementById('panSpeed');
+        const panValDisplay = document.getElementById('panVal');
+        const driveGainInput = document.getElementById('driveGain');
+        const driveValDisplay = document.getElementById('driveVal');
         
-        // Touch camera aiming configuration variables for mobile devices
-        let touchLookId = null;
-        let lastTouchLookPos = { x: 0, y: 0 };
-        
-        // Advanced FaceMesh Tracking State Parameters
-        let eyesClosed = false;
-        let lastEyeState = false;
-        let eyeClosureTimer = 0;
-        const targetClosureTime = 2.5;
-        let earBaseline = 0.0;
-        let calibrationFrames = 0;
-        const requiredCalibrationFrames = 45;
-        let isCalibrated = false;
-        let isProcessingMeshFrame = false; // System lock token to prevent frame pileup bugs
-        
-        // Weapon / Run Energy States
-        let weaponCharge = 100.0;
-        const weaponMaxCharge = 100.0;
-        const weaponFireCost = 25.0;
-        const weaponRechargeRate = 18.0; 
+        const canvas = document.getElementById('visualizer');
+        const canvasCtx = canvas.getContext('2d');
 
-        let stamina = 100.0;
-        const maxStamina = 100.0;
-        const staminaDrainRate = 33.0;
-        const staminaRegenRate = 22.0;
-        let isStaminaExhausted = false;
-        
-        // Camera structural animations metrics
-        let headBobTimer = 0.0;
-        let lensShakeDuration = 0.0;
-        let targetFOV = 65.0;
-        
-        // Render Node Graph Engine Pointers
-        let scene, camera, renderer, clock;
-        let playerContainer, flashlight;
-        let dorims = [];
-        let flowers = [];
-        let queenPimporin;
-        let collectionRingHelper;
-        
-        // InstancedMesh architectural performance node references for optimal engine efficiency
-        let treeTrunkInstancedMesh, treeLeavesInstancedMesh;
-        const proceduralTreesCount = 380;
-
-        // Dynamic Real-Time Synthesis Audio Matrices
-        let audioCtx;
-        let masterBusGain;
-        let proximityDangerGain;
-        let ambientHumOsc;
-        let isAudioInitialized = false;
-
-        const mapSize = 120;
-        let stepSoundTimer = 0;
-        
-        function setPlatform(p) {
-            platform = p;
-            document.getElementById('opt-desktop').classList.toggle('active', p === 'desktop');
-            document.getElementById('opt-mobile').classList.toggle('active', p === 'mobile');
-        }
-
-        // --- PRODUCTION SYNTHESIZER GRAPH LAYER ---
-        function initAudioEngine() {
+        // Initialize MediaPipe Face Landmarker Model
+        async function initializeFaceTracking() {
             try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContextClass();
-                
-                masterBusGain = audioCtx.createGain();
-                masterBusGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
-                masterBusGain.connect(audioCtx.destination);
-                
-                proximityDangerGain = audioCtx.createGain();
-                proximityDangerGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-                proximityDangerGain.connect(masterBusGain);
-                
-                ambientHumOsc = audioCtx.createOscillator();
-                const filterNode = audioCtx.createBiquadFilter();
-                
-                ambientHumOsc.type = 'sawtooth';
-                ambientHumOsc.frequency.setValueAtTime(55, audioCtx.currentTime); 
-                
-                filterNode.type = 'lowpass';
-                filterNode.frequency.setValueAtTime(140, audioCtx.currentTime);
-                
-                ambientHumOsc.connect(filterNode);
-                filterNode.connect(proximityDangerGain);
-                ambientHumOsc.start();
-                
-                isAudioInitialized = true;
-            } catch (err) {
-                console.error("Audio block generation trace issue:", err);
+                const filesetResolver = await FilesetResolver.forVisionTasks(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+                );
+                faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+                    baseOptions: {
+                        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker_with_blendshapes/float16/1/face_landmarker_with_blendshapes.task`,
+                        delegate: "GPU"
+                    },
+                    outputBlendshapes: true,
+                    runningMode: "VIDEO",
+                    numFaces: 1
+                });
+                statusDot.className = "h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
+                statusText.innerText = "Tracking Engine Ready";
+            } catch (error) {
+                console.error("MediaPipe failed initialization:", error);
+                statusText.innerText = "Tracking Offline";
+                statusDot.className = "h-2 w-2 rounded-full bg-rose-500";
             }
         }
+        initializeFaceTracking();
 
-        function playSynthVoice(freq, type, duration, vol, decay) {
-            if (!isAudioInitialized || audioCtx.state === 'suspended') return;
+        // Build Digital Signal Processing (DSP) Audio Graph Network
+        function buildAudioGraph() {
+            if (audioCtx) return; // Prevent recreation safety lock
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            audioSource = audioCtx.createMediaElementSource(audioPlayer);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+
+            // Setup Underwater Muffle Filter (Lowpass)
+            muffleFilter = audioCtx.createBiquadFilter();
+            muffleFilter.type = 'lowpass';
+            muffleFilter.frequency.setValueAtTime(20000, audioCtx.currentTime); // Open setting
+
+            // Setup 3D Stereo Spatial Panner Node
+            pannerNode = audioCtx.createStereoPanner();
+            pannerNode.pan.setValueAtTime(0, audioCtx.currentTime);
+
+            // Setup Analog Warmth Distortion Node
+            waveShaperNode = audioCtx.createWaveShaper();
+            waveShaperNode.curve = makeDistortionCurve(0);
+            waveShaperNode.oversample = '4x';
+
+            // Connect processing chain: Source -> Muffle -> Drive -> Pan -> Analyser -> Output
+            audioSource.connect(muffleFilter);
+            muffleFilter.connect(waveShaperNode);
+            waveShaperNode.connect(pannerNode);
+            pannerNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
             
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            
-            gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + decay);
-            
-            osc.connect(gainNode);
-            gainNode.connect(masterBusGain);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+            renderVisualizer();
         }
 
-        function playWeaponSound() {
-            playSynthVoice(520, 'sawtooth', 0.25, 0.4, 0.2);
-            playSynthVoice(900, 'square', 0.12, 0.2, 0.08);
-        }
-
-        function playCollectionSound() {
-            playSynthVoice(523.25, 'sine', 0.3, 0.3, 0.25); 
-            setTimeout(() => playSynthVoice(659.25, 'sine', 0.3, 0.3, 0.25), 80); 
-            setTimeout(() => playSynthVoice(783.99, 'sine', 0.3, 0.3, 0.25), 160); 
-            setTimeout(() => playSynthVoice(1174.66, 'sine', 0.5, 0.4, 0.4), 240); 
-        }
-
-        function playStepSound(isRunning) {
-            if(!isAudioInitialized) return;
-            const bufferSize = audioCtx.sampleRate * 0.07;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
+        // Mathematical Function to generate Soft-Clipping Distortion Curves
+        function makeDistortionCurve(amount) {
+            let k = typeof amount === 'number' ? amount : 50,
+                n_samples = 44100,
+                curve = new Float32Array(n_samples),
+                deg = Math.PI / 180,
+                i = 0,
+                x;
+            for ( ; i < n_samples; ++i ) {
+                x = ( i * 2 ) / n_samples - 1;
+                curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
             }
-            
-            const noiseNode = audioCtx.createBufferSource();
-            noiseNode.buffer = buffer;
-            
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(isRunning ? 400 : 300, audioCtx.currentTime);
-            filter.Q.setValueAtTime(5, audioCtx.currentTime);
-            
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(isRunning ? 0.06 : 0.03, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
-            
-            noiseNode.connect(filter);
-            filter.connect(gain);
-            gain.connect(masterBusGain);
-            noiseNode.start();
+            return curve;
         }
 
-        function playBlinkSound() {
-            playSynthVoice(1400, 'sine', 0.05, 0.15, 0.03);
-        }
-
-        function playSpawnSound() {
-            playSynthVoice(82, 'sawtooth', 0.7, 0.4, 0.5);
-            playSynthVoice(116, 'triangle', 0.4, 0.3, 0.3);
-        }
-
-        function playGameOverSound() {
-            playSynthVoice(49, 'sawtooth', 2.2, 0.6, 2.0);
-        }
-
-        // --- COMPUTER VISION BIOMETRIC SUBSYSTEM ---
-        let videoElement = document.getElementById('webcam-video');
-        let trackingActive = false;
-        let faceMesh = null;
-
-        function setupBiometricsModule() {
-            faceMesh = new FaceMesh({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-            });
-
-            faceMesh.setOptions({
-                maxNumFaces: 1,
-                refineLandmarks: true,
-                minDetectionConfidence: 0.6,
-                minTrackingConfidence: 0.6
-            });
-
-            faceMesh.onResults(processMeshTelemetry);
-
-            // Force strict mobile selfie camera orientation configurations parameters constraints
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "user",
-                    width: { ideal: 320 }, 
-                    height: { ideal: 240 },
-                    frameRate: { ideal: 30 }
-                } 
-            })
-            .then(stream => {
-                videoElement.srcObject = stream;
-                trackingActive = true;
-                videoElement.style.display = "block";
+        // Local Audio Input Handling Stream
+        audioFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileNameDisplay.innerText = file.name;
+                const fileURL = URL.createObjectURL(file);
+                audioPlayer.src = fileURL;
                 
-                const dot = document.getElementById('track-dot');
-                dot.classList.add('active');
-                document.getElementById('track-text').innerHTML = "<span class='calibrating-text'>SAMPLING FACE VECTOR MODEL</span>";
+                // Wake up styling configurations
+                playBtn.disabled = false;
+                playBtn.className = "w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 transform active:scale-95 transition-all cursor-pointer";
+                playBtn.title = "Play/Pause Track";
+                trackStatusText.innerText = "Track Loaded";
                 
-                videoElement.onloadedmetadata = () => {
-                    videoElement.play();
-                    captureFrameLoop();
-                };
-            })
-            .catch(err => {
-                console.warn("Webcam access failure. Standard manual system logic loops mapping loaded.", err);
-                initializeControlFallbacks();
-            });
-        }
+                buildAudioGraph();
+            }
+        });
 
-        // Locked execution loop that limits frames dynamically to prevent bottleneck crashes
-        function captureFrameLoop() {
-            if (gameActive && trackingActive && !isProcessingMeshFrame) {
-                // Throttle processing loops on mobile to optimize performance
-                if (platform === 'mobile' && clock && Math.floor(clock.getElapsedTime() * 100) % 3 !== 0) {
-                    requestAnimationFrame(captureFrameLoop);
-                    return;
-                }
-                
-                isProcessingMeshFrame = true;
-                faceMesh.send({ image: videoElement })
-                    .then(() => {
-                        isProcessingMeshFrame = false;
-                        requestAnimationFrame(captureFrameLoop);
-                    })
-                    .catch((e) => {
-                        console.error("Biometrics hardware framework capture dropped exception:", e);
-                        isProcessingMeshFrame = false;
-                        requestAnimationFrame(captureFrameLoop);
-                    });
+        // Global Play/Pause Control Management
+        playBtn.addEventListener('click', () => {
+            if (!audioCtx) buildAudioGraph();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playBtn.innerHTML = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
+                trackStatusText.innerText = "Playing...";
             } else {
-                requestAnimationFrame(captureFrameLoop);
+                audioPlayer.pause();
+                playBtn.innerHTML = `<svg class="w-8 h-8 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
+                trackStatusText.innerText = "Paused";
             }
-        }
+        });
 
-        function initializeControlFallbacks() {
-            document.getElementById('track-text').innerText = "MANUAL LOGIC LAYER (SPACEBAR)";
-            document.getElementById('track-dot').classList.add('active');
-            document.getElementById('track-dot').style.backgroundColor = "var(--neon-cyan)";
-            
-            window.addEventListener('keydown', (e) => {
-                if (e.code === 'Space') { e.preventDefault(); parseEyeStateAllocation(true); }
-            });
-            window.addEventListener('keyup', (e) => {
-                if (e.code === 'Space') { parseEyeStateAllocation(false); }
-            });
-
-            const mobileEyeBtn = document.getElementById('btn-mobile-eye');
-            mobileEyeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); parseEyeStateAllocation(true); });
-            mobileEyeBtn.addEventListener('touchend', (e) => { e.preventDefault(); parseEyeStateAllocation(false); });
-        }
-
-        function processMeshTelemetry(results) {
-            if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
-            const landmarks = results.multiFaceLandmarks[0];
-            
-            // Re-engineered highly responsive mathematical index definitions for real-time validation tracking
-            // Standard specific Eye Aspect Ratio (EAR) metric calculations matrix coordinates
-            const leftVerticalDist = Math.hypot(landmarks[159].x - landmarks[145].x, landmarks[159].y - landmarks[145].y);
-            const leftHorizontalDist = Math.hypot(landmarks[33].x - landmarks[133].x, landmarks[33].y - landmarks[133].y);
-            const leftEAR = leftVerticalDist / (leftHorizontalDist || 1.0);
-
-            const rightVerticalDist = Math.hypot(landmarks[386].x - landmarks[374].x, landmarks[386].y - landmarks[374].y);
-            const rightHorizontalDist = Math.hypot(landmarks[362].x - landmarks[263].x, landmarks[362].y - landmarks[263].y);
-            const rightEAR = rightVerticalDist / (rightHorizontalDist || 1.0);
-
-            const currentAverageEAR = (leftEAR + rightEAR) / 2.0;
-
-            if (!isCalibrated) {
-                calibrationFrames++;
-                earBaseline += currentAverageEAR;
-                if (calibrationFrames >= requiredCalibrationFrames) {
-                    earBaseline = (earBaseline / requiredCalibrationFrames) * 0.72; // Optimized custom calibration coefficient scaling index mapping
-                    isCalibrated = true;
-                    document.getElementById('track-text').innerText = "MESH BIOMETRICS SECURED";
-                }
+        // Trigger Video Stream Capture
+        startCamBtn.addEventListener('click', async () => {
+            if (!faceLandmarker) {
+                alert("The tracking model is still loading. Please give it a few seconds!");
                 return;
             }
-
-            if (currentAverageEAR < earBaseline) {
-                parseEyeStateAllocation(true);
-            } else {
-                parseEyeStateAllocation(false);
+            try {
+                const constraints = { video: { width: 640, height: 480 } };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                cameraPrompt.classList.add('hidden');
+                webcamRunning = true;
+                video.addEventListener('loadeddata', predictWebcamLoop);
+            } catch (err) {
+                console.error("Camera access blocked or unavailable:", err);
+                alert("Could not access webcam. Ensure permission is granted.");
             }
-        }
+        });
 
-        function parseEyeStateAllocation(isClosed) {
-            eyesClosed = isClosed;
-            const uiText = document.getElementById('eye-status');
-            const visualBlinkOverlay = document.getElementById('blink-overlay');
-            
-            if (eyesClosed) {
-                uiText.innerText = "EYELIDS SEALED CLOSED";
-                uiText.style.color = "var(--glitch-red)";
-                visualBlinkOverlay.style.opacity = "0.98";
-            } else {
-                uiText.innerText = "SCANNING NODE INTERSECTS";
-                uiText.style.color = "var(--terminal-green)";
-                visualBlinkOverlay.style.opacity = "0";
-            }
-        }
+        // MediaPipe Analytical Loop for Real-time Facial Tracking
+        let lastVideoTime = -1;
+        async function predictWebcamLoop() {
+            if (!webcamRunning) return;
 
-        // --- DISCHARGE LANTERN CORE FLUIDS SWEEP TRIGGER ---
-        function executeLanternFlash() {
-            if (!gameActive || weaponCharge < weaponFireCost) return;
-            
-            weaponCharge -= weaponFireCost;
-            playWeaponSound();
+            let startTimeMs = performance.now();
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                const results = faceLandmarker.detectForVideo(video, startTimeMs);
 
-            lensShakeDuration = 0.22; // Induces high-end camera lens micro-shake kinetic visual feedback matrices logic
-
-            const primaryIntensity = flashlight.intensity;
-            flashlight.intensity = 24.0;
-            flashlight.coneMeshHelper.visible = true;
-            
-            setTimeout(() => {
-                flashlight.intensity = primaryIntensity;
-                flashlight.coneMeshHelper.visible = false;
-            }, 160);
-
-            const aimDirectionVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).normalize();
-            const originPosition = playerContainer.position;
-
-            for (let idx = dorims.length - 1; idx >= 0; idx--) {
-                const targetAnomaly = dorims[idx];
-                const distanceVector = new THREE.Vector3().subVectors(targetAnomaly.position, originPosition);
-                const absoluteDistance = distanceVector.length();
-                
-                if (absoluteDistance < 28.0) { 
-                    distanceVector.normalize();
-                    const trackingDotScalar = aimDirectionVector.dot(distanceVector);
+                if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
+                    const blendShapes = results.faceBlendshapes[0].categories;
                     
-                    if (trackingDotScalar > 0.78) { 
-                        scene.remove(targetAnomaly);
-                        dorims.splice(idx, 1);
-                    }
-                }
-            }
-        }
-
-        // --- USER SYSTEM CONTROLS MAPPING INTERFACES ---
-        function setupDesktopInputLayout() {
-            const viewportContainer = document.body;
-            viewportContainer.addEventListener('click', () => {
-                if(gameActive && platform === 'desktop') viewportContainer.requestPointerLock();
-            });
-            window.addEventListener('mousedown', (e) => {
-                if(document.pointerLockElement === viewportContainer && e.button === 0) executeLanternFlash();
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (document.pointerLockElement === viewportContainer && gameActive) {
-                    cameraRotation.y -= e.movementX * 0.0022;
-                    cameraRotation.x -= e.movementY * 0.0020;
-                    cameraRotation.x = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, cameraRotation.x));
-                }
-            });
-
-            window.addEventListener('keydown', (e) => {
-                const characterKey = e.key.toLowerCase();
-                if(characterKey in keys) keys[characterKey] = true;
-                if(e.key === 'Shift') keys.shift = true;
-            });
-            window.addEventListener('keyup', (e) => {
-                const characterKey = e.key.toLowerCase();
-                if(characterKey in keys) keys[characterKey] = false;
-                if(e.key === 'Shift') keys.shift = false;
-            });
-        }
-
-        function setupMobileInputLayout() {
-            const zone = document.getElementById('joy-zone');
-            const knob = document.getElementById('joy-knob');
-
-            // Movement Joystick processing loop allocations maps
-            zone.addEventListener('touchstart', (e) => {
-                joystickActive = true;
-                const touchPoint = e.touches[0];
-                joystickStart = { x: touchPoint.clientX, y: touchPoint.clientY };
-            });
-
-            window.addEventListener('touchmove', (e) => {
-                // Identify structural loops and map tracking parameters updates safely
-                for (let i = 0; i < e.touches.length; i++) {
-                    const activeTouch = e.touches[i];
+                    // Pull specific coefficients for eyelids tracking down
+                    const eyeBlinkLeft = blendShapes.find(shape => shape.categoryName === "eyeBlinkLeft").score;
+                    const eyeBlinkRight = blendShapes.find(shape => shape.categoryName === "eyeBlinkRight").score;
                     
-                    if (joystickActive && activeTouch.target === zone || activeTouch.target === knob || Math.hypot(activeTouch.clientX - joystickStart.x, activeTouch.clientY - joystickStart.y) < 100 && joystickActive) {
-                        let movementDeltaX = activeTouch.clientX - joystickStart.x;
-                        let movementDeltaY = activeTouch.clientY - joystickStart.y;
-                        const absoluteDistance = Math.hypot(movementDeltaX, movementDeltaY);
-                        
-                        if (absoluteDistance > maxJoystickDelta) {
-                            movementDeltaX = (movementDeltaX / absoluteDistance) * maxJoystickDelta;
-                            movementDeltaY = (movementDeltaY / absoluteDistance) * maxJoystickDelta;
+                    // Calculate threshold for explicit "Closed" status calculation
+                    const averageBlink = (eyeBlinkLeft + eyeBlinkRight) / 2;
+                    
+                    // Dynamic Muffle Manipulation (Smooth Exponential Ramp transitions)
+                    if (audioCtx && muffleFilter) {
+                        if (averageBlink > 0.45) { // Eyes closing down
+                            // Muffle the system down to 450Hz
+                            muffleFilter.frequency.setTargetAtTime(450, audioCtx.currentTime, 0.08);
+                            eyeStateDisplay.innerText = "UNDERWATER (CLOSED)";
+                            eyeStateDisplay.className = "text-xs text-blue-400 font-mono font-bold tracking-wider";
+                        } else {
+                            // High clear fidelity at 20000Hz
+                            muffleFilter.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.12);
+                            eyeStateDisplay.innerText = "OPEN";
+                            eyeStateDisplay.className = "text-xs text-indigo-400 font-mono tracking-wider";
                         }
                         
-                        knob.style.transform = `translate(${movementDeltaX}px, ${movementDeltaY}px)`;
-                        moveVector.x = movementDeltaX / maxJoystickDelta;
-                        moveVector.z = movementDeltaY / maxJoystickDelta;
-                    } else if (activeTouch.identifier === touchLookId) {
-                        // High-End Dedicated Touch Look-Around Structural Matrix System Handler logic
-                        let currentLookX = activeTouch.clientX;
-                        let currentLookY = activeTouch.clientY;
-                        
-                        cameraRotation.y += (currentLookX - lastTouchLookPos.x) * 0.007;
-                        cameraRotation.x += (currentLookY - lastTouchLookPos.y) * 0.005;
-                        cameraRotation.x = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, cameraRotation.x));
-                        
-                        lastTouchLookPos = { x: currentLookX, y: currentLookY };
+                        // Update UI sliders dynamically based on active filtering metrics
+                        const currentFreq = Math.round(muffleFilter.frequency.value);
+                        cutoffValDisplay.innerText = `${currentFreq} Hz`;
+                        const pct = Math.min(100, (currentFreq / 20000) * 100);
+                        cutoffBar.style.width = `${pct}%`;
                     }
                 }
-            });
-
-            window.addEventListener('touchstart', (e) => {
-                for (let i = 0; i < e.touches.length; i++) {
-                    const activeTouch = e.touches[i];
-                    // If the look window interaction vector maps onto the right side half of the layout, map look mechanics parameters constraints 
-                    if (activeTouch.clientX > window.innerWidth / 2 && touchLookId === null) {
-                        touchLookId = activeTouch.identifier;
-                        lastTouchLookPos = { x: activeTouch.clientX, y: activeTouch.clientY };
-                    }
-                }
-            });
-
-            window.addEventListener('touchend', (e) => {
-                let joystickReleased = true;
-                let lookReleased = true;
-
-                for (let i = 0; i < e.touches.length; i++) {
-                    if (e.touches[i].identifier === touchLookId) lookReleased = false;
-                }
-                
-                if (e.touches.length === 0 || (joystickActive && e.target === zone)) {
-                    joystickReleased = true;
-                }
-
-                if (joystickReleased) {
-                    joystickActive = false;
-                    knob.style.transform = 'translate(0px, 0px)';
-                    moveVector = { x: 0, z: 0 };
-                }
-                if (lookReleased) {
-                    touchLookId = null;
-                }
-            });
-
-            document.getElementById('btn-mobile-fire').addEventListener('touchstart', (e) => {
-                e.preventDefault(); executeLanternFlash();
-            });
-        }
-
-        // --- PHYSICAL GRAPH ENVIRONMENT PIPELINE BUILDER ---
-        function buildWorldGeometry() {
-            const mountingContainer = document.getElementById('canvas-container');
-            
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xdce5ed); 
-            scene.fog = new THREE.FogExp2(0xdce5ed, 0.038);
-
-            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-            
-            playerContainer = new THREE.Object3D();
-            playerContainer.position.set(0, 1.6, 50);
-            playerContainer.add(camera);
-            scene.add(playerContainer);
-
-            flashlight = new THREE.SpotLight(0xffffff, 5.0, 45, Math.PI / 4.2, 0.4, 1.2);
-            flashlight.position.set(0, 0, 0);
-            flashlight.target = new THREE.Object3D();
-            flashlight.target.position.set(0, 0, -1);
-            camera.add(flashlight);
-            camera.add(flashlight.target);
-
-            const trackingConeGeo = new THREE.ConeGeometry(7.0, 28, 8, 1, true);
-            trackingConeGeo.rotateX(-Math.PI / 2);
-            trackingConeGeo.translate(0, 0, -14);
-            const coneMaterialMesh = new THREE.MeshBasicMaterial({color: 0xff00ea, transparent: true, opacity: 0.04, wireframe: true});
-            flashlight.coneMeshHelper = new THREE.Mesh(trackingConeGeo, coneMaterialMesh);
-            flashlight.coneMeshHelper.visible = false;
-            camera.add(flashlight.coneMeshHelper);
-
-            renderer = new THREE.WebGLRenderer({ antialias: platform === 'desktop', powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            
-            // Highly optimized mobile shadow architectures definitions
-            if (platform === 'desktop') {
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            } else {
-                renderer.shadowMap.enabled = false; // Bypasses shadow parsing entirely on mobile configurations for flawless framerate matrix stability
-            }
-            
-            mountingContainer.appendChild(renderer.domElement);
-
-            const skyAmbientLight = new THREE.AmbientLight(0xffffff, 0.65);
-            scene.add(skyAmbientLight);
-
-            const directSunLight = new THREE.DirectionalLight(0xe4edff, 0.45);
-            directSunLight.position.set(40, 80, 20);
-            if (platform === 'desktop') {
-                directSunLight.castShadow = true;
-                directSunLight.shadow.mapSize.width = 1024;
-                directSunLight.shadow.mapSize.height = 1024;
-            }
-            scene.add(directSunLight);
-
-            const terrainGeo = new THREE.PlaneGeometry(mapSize * 2.5, mapSize * 2.5, 60, 60);
-            const trackingPositions = terrainGeo.attributes.position;
-            
-            for (let i = 0; i < trackingPositions.count; i++) {
-                let coordX = trackingPositions.getX(i);
-                let coordY = trackingPositions.getY(i);
-                let absoluteElevationZ = Math.sin(coordX * 0.04) * Math.cos(coordY * 0.04) * 1.8 + Math.cos(coordX * 0.08) * 0.4;
-                trackingPositions.setZ(i, absoluteElevationZ);
-            }
-            terrainGeo.computeVertexNormals();
-
-            const terrainMat = new THREE.MeshStandardMaterial({ 
-                color: 0xabbcc9, roughness: 0.95, metalness: 0.0, flatShading: true 
-            });
-            const terrainPlaneMesh = new THREE.Mesh(terrainGeo, terrainMat);
-            terrainPlaneMesh.rotation.x = -Math.PI / 2;
-            terrainPlaneMesh.receiveShadow = true;
-            scene.add(terrainPlaneMesh);
-
-            proceduralInstancedForestSpawningSystem();
-            deployQuantumFlowers();
-            instantiateCentralMatrixEntity();
-
-            const helperRingGeo = new THREE.TorusGeometry(4.5, 0.04, 6, 36);
-            const helperRingMat = new THREE.MeshBasicMaterial({ color: 0xff00ea, transparent: true, opacity: 0 });
-            collectionRingHelper = new THREE.Mesh(helperRingGeo, helperRingMat);
-            collectionRingHelper.rotation.x = Math.PI / 2;
-            scene.add(collectionRingHelper);
-
-            window.addEventListener('resize', handleViewportResizing);
-        }
-
-        function sampleTopologyElevation(x, z) {
-            return Math.sin(x * 0.04) * Math.cos(z * 0.04) * 1.8 + Math.cos(x * 0.08) * 0.4;
-        }
-
-        // RE-ENGINEERED INSTANCEDMESH GRAPH PIPELINE: Reduces draw calls from 840 individual meshes to exactly 2 calls total
-        function proceduralInstancedForestSpawningSystem() {
-            const treeTrunkGeo = new THREE.CylinderGeometry(0.12, 0.35, 14, 4);
-            treeTrunkGeo.translate(0, 7, 0); // Modifies vertex matrix origin parameters constraints
-            const leafyCrownGeo = new THREE.DodecahedronGeometry(2.5, 0);
-            leafyCrownGeo.translate(0, 13, 0);
-            
-            const timberMat = new THREE.MeshStandardMaterial({ color: 0x484d52, roughness: 0.9 });
-            const foliageMat = new THREE.MeshStandardMaterial({ color: 0x8fa0ae, roughness: 0.8, flatShading: true });
-
-            treeTrunkInstancedMesh = new THREE.InstancedMesh(treeTrunkGeo, timberMat, proceduralTreesCount);
-            treeLeavesInstancedMesh = new THREE.InstancedMesh(leafyCrownGeo, foliageMat, proceduralTreesCount);
-            
-            if (platform === 'desktop') {
-                treeTrunkInstancedMesh.castShadow = true;
-                treeLeavesInstancedMesh.castShadow = true;
             }
 
-            let validInstancesSpawningCounter = 0;
-            const matrixTransformDummy = new THREE.Object3D();
-
-            for (let i = 0; i < proceduralTreesCount * 1.5; i++) {
-                if (validInstancesSpawningCounter >= proceduralTreesCount) break;
-
-                const sampleX = (Math.random() - 0.5) * (mapSize * 2.3);
-                const sampleZ = (Math.random() - 0.5) * (mapSize * 2.3);
-                
-                if (Math.hypot(sampleX, sampleZ) < 20 || Math.hypot(sampleX, sampleZ - 50) < 10) continue;
-
-                const floorHeightY = sampleTopologyElevation(sampleX, sampleZ);
-
-                // Build structural matrix transformations metrics calculations indices
-                matrixTransformDummy.position.set(sampleX, floorHeightY, sampleZ);
-                matrixTransformDummy.scale.set(1.0, 1.0, 1.0);
-                matrixTransformDummy.rotation.set(0, Math.random() * Math.PI, 0);
-                matrixTransformDummy.updateMatrix();
-                treeTrunkInstancedMesh.setMatrixAt(validInstancesSpawningCounter, matrixTransformDummy.matrix);
-
-                matrixTransformDummy.scale.set(1.1, 1.6, 1.1);
-                matrixTransformDummy.updateMatrix();
-                treeLeavesInstancedMesh.setMatrixAt(validInstancesSpawningCounter, matrixTransformDummy.matrix);
-
-                validInstancesSpawningCounter++;
+            // Continuous animation looping execution
+            if (webcamRunning) {
+                window.requestAnimationFrame(predictWebcamLoop);
             }
-
-            scene.add(treeTrunkInstancedMesh);
-            scene.add(treeLeavesInstancedMesh);
         }
 
-        function deployQuantumFlowers() {
-            const matrixCoordinates = [
-                {x: -50, z: -50}, {x: 55, z: -60}, {x: -60, z: 55}, {x: 50, z: 45}
-            ];
-
-            const internalCalyxGeo = new THREE.OctahedronGeometry(0.7, 0);
-            const stemTubeGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.5);
-            const standardStemMat = new THREE.MeshStandardMaterial({ color: 0x2d353c });
-
-            matrixCoordinates.forEach((coord, markerIndex) => {
-                const compositeFlowerGroup = new THREE.Group();
-                const landscapeElevationY = sampleTopologyElevation(coord.x, coord.z);
-
-                const glowingCoreMat = new THREE.MeshStandardMaterial({ 
-                    color: 0x00f3ff, emissive: 0x0055aa, roughness: 0.1, metalness: 0.9
-                });
-
-                const stemMesh = new THREE.Mesh(stemTubeGeo, standardStemMat);
-                stemMesh.position.y = 1.25;
-                compositeFlowerGroup.add(stemMesh);
-
-                const calyxMesh = new THREE.Mesh(internalCalyxGeo, glowingCoreMat);
-                calyxMesh.position.y = 2.4;
-                calyxMesh.name = "glowing_node_calyx";
-                compositeFlowerGroup.add(calyxMesh);
-
-                const radiantLight = new THREE.PointLight(0x00f3ff, 2.5, 14);
-                radiantLight.position.y = 2.8;
-                compositeFlowerGroup.add(radiantLight);
-
-                const boundaryRingGeo = new THREE.RingGeometry(4.45, 4.5, 24);
-                const boundaryRingMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
-                const structureRingMesh = new THREE.Mesh(boundaryRingGeo, boundaryRingMat);
-                structureRingMesh.rotation.x = -Math.PI / 2;
-                structureRingMesh.position.y = 0.05;
-                compositeFlowerGroup.add(structureRingMesh);
-
-                compositeFlowerGroup.position.set(coord.x, landscapeElevationY, coord.z);
-                compositeFlowerGroup.userData = { targetId: markerIndex, harvested: false };
-                
-                scene.add(compositeFlowerGroup);
-                flowers.push(compositeFlowerGroup);
-            });
-        }
-
-        function instantiateCentralMatrixEntity() {
-            queenPimporin = new THREE.Group();
-            const rootBaseY = sampleTopologyElevation(0, 0);
-            queenPimporin.position.set(0, rootBaseY, 0);
-
-            const centralNucleusGeo = new THREE.IcosahedronGeometry(3.0, 0);
-            const centralNucleusMat = new THREE.MeshStandardMaterial({
-                color: 0xff00ea, emissive: 0x440055, roughness: 0.2, metalness: 0.8, wireframe: true
-            });
-            
-            const matrixNucleusMesh = new THREE.Mesh(centralNucleusGeo, centralNucleusMat);
-            matrixNucleusMesh.position.y = 5.5;
-            matrixNucleusMesh.name = "abstract_nucleus_mesh";
-            queenPimporin.add(matrixNucleusMesh);
-
-            const secondaryRingGeo = new THREE.TorusGeometry(6.0, 0.08, 4, 32);
-            const secondaryRingMat = new THREE.MeshStandardMaterial({ color: 0x00f3ff, wireframe: true });
-            const structuralRingMesh = new THREE.Mesh(secondaryRingGeo, secondaryRingMat);
-            structuralRingMesh.position.y = 5.5;
-            structuralRingMesh.rotation.x = Math.PI / 2;
-            structuralRingMesh.name = "outer_matrix_gyro_ring";
-            queenPimporin.add(structuralRingMesh);
-
-            const localizedPointLight = new THREE.PointLight(0xff00ea, 4.0, 35);
-            localizedPointLight.position.set(0, 6, 0);
-            queenPimporin.add(localizedPointLight);
-
-            scene.add(queenPimporin);
-        }
-
-        function spawnAnomalyDorim() {
-            const rotationalRadian = Math.random() * Math.PI * 2;
-            const offsetDistance = 22 + Math.random() * 10; 
-            const targetX = playerContainer.position.x + Math.cos(rotationalRadian) * offsetDistance;
-            const targetZ = playerContainer.position.z + Math.sin(rotationalRadian) * offsetDistance;
-            const structuralY = sampleTopologyElevation(targetX, targetZ);
-
-            const anomalyCompositeGroup = new THREE.Group();
-
-            const shellGeometry = new THREE.DodecahedronGeometry(0.9, 0);
-            const shellMaterialMat = new THREE.MeshStandardMaterial({ 
-                color: 0x0d031a, emissive: 0x220115, roughness: 0.4, flatShading: true
-            });
-            const shellMesh = new THREE.Mesh(shellGeometry, shellMaterialMat);
-            shellMesh.position.y = 0.9;
-            shellMesh.name = "hostile_geometry_shell";
-            anomalyCompositeGroup.add(shellMesh);
-
-            const pupilSphereGeo = new THREE.SphereGeometry(0.1, 4, 4);
-            const pupilMaterialMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-            
-            const ocularCoordinatesArray = [
-                {x: 0.25, y: 1.1, z: -0.65}, {x: -0.2, y: 0.95, z: -0.7},
-                {x: 0.05, y: 1.3, z: -0.58}, {x: -0.35, y: 1.2, z: -0.5}
-            ];
-
-            ocularCoordinatesArray.forEach(coords => {
-                const individualEyeMesh = new THREE.Mesh(pupilSphereGeo, pupilMaterialMat);
-                individualEyeMesh.position.set(coords.x, coords.y - 0.9, coords.z);
-                shellMesh.add(individualEyeMesh);
-            });
-
-            const monsterLanternLight = new THREE.PointLight(0xff0055, 3.5, 18.0, 1.5);
-            monsterLanternLight.position.set(0, 1.2, 0);
-            anomalyCompositeGroup.add(monsterLanternLight);
-
-            const ringTrackingGeo = new THREE.RingGeometry(1.2, 1.4, 16);
-            const ringTrackingMat = new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
-            const haloFloorMesh = new THREE.Mesh(ringTrackingGeo, ringTrackingMat);
-            haloFloorMesh.rotation.x = -Math.PI / 2;
-            haloFloorMesh.position.y = -0.8;
-            anomalyCompositeGroup.add(haloFloorMesh);
-
-            anomalyCompositeGroup.position.set(targetX, structuralY + 0.8, targetZ);
-            scene.add(anomalyCompositeGroup);
-            dorims.push(anomalyCompositeGroup);
-            
-            playSpawnSound();
-        }
-
-        function handleViewportResizing() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function triggerCollectionFlashVisualEffect() {
-            const overlay = document.getElementById('flash-overlay');
-            overlay.style.opacity = '0.9';
-            
-            let currentOpacity = 0.9;
-            function fade() {
-                currentOpacity -= 0.08;
-                if (currentOpacity > 0) {
-                    overlay.style.opacity = currentOpacity;
-                    requestAnimationFrame(fade);
+        // Custom Effects Engine Loop Configurations
+        function runCustomEffects() {
+            if (audioCtx && pannerNode) {
+                const speed = parseFloat(panSpeedInput.value);
+                if (speed > 0) {
+                    spatialAngle += (speed * 0.01);
+                    const currentPan = Math.sin(spatialAngle); // Ping-pong sinus balance loop
+                    pannerNode.pan.setValueAtTime(currentPan, audioCtx.currentTime);
+                    panValDisplay.innerText = currentPan > 0 ? `Right +${currentPan.toFixed(1)}` : `Left ${currentPan.toFixed(1)}`;
                 } else {
-                    overlay.style.opacity = '0';
+                    pannerNode.pan.setValueAtTime(0, audioCtx.currentTime);
+                    panValDisplay.innerText = "Off";
                 }
             }
-            setTimeout(fade, 40);
+            requestAnimationFrame(runCustomEffects);
         }
+        runCustomEffects();
 
-        // --- CORE REAL-TIME SIMULATION ENGINE ---
-        function animate() {
-            if (!gameActive) return;
-            requestAnimationFrame(animate);
-
-            const runtimeDelta = clock.getDelta();
-            const processTimeSeconds = clock.getElapsedTime();
-
-            if (weaponCharge < weaponMaxCharge) {
-                weaponCharge = Math.min(weaponMaxCharge, weaponCharge + (weaponRechargeRate * runtimeDelta));
+        // Track Distortion Slider Controls
+        driveGainInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            driveValDisplay.innerText = val > 0 ? `${val}%` : "Off";
+            if (waveShaperNode) {
+                waveShaperNode.curve = makeDistortionCurve(val * 1.5);
             }
-            document.getElementById('weapon-charge-bar').style.width = `${weaponCharge}%`;
+        });
 
-            // On mobile devices, push joystick to edge to trigger sprint mode
-            let isRunningIntent = (platform === 'desktop') ? 
-                (keys.shift && (keys.w || keys.s || keys.a || keys.d)) : 
-                (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.88);
+        // Canvas Rendering Logic Engine (Audio Output Waves)
+        function renderVisualizer() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
             
-            if (isStaminaExhausted) {
-                stamina = Math.min(maxStamina, stamina + (staminaRegenRate * runtimeDelta));
-                if (stamina >= 30.0) isStaminaExhausted = false; 
-            } else if (isRunningIntent) {
-                stamina = Math.max(0, stamina - (staminaDrainRate * runtimeDelta));
-                if (stamina <= 0) isStaminaExhausted = true;
-            } else {
-                stamina = Math.min(maxStamina, stamina + (staminaRegenRate * runtimeDelta));
-            }
-            document.getElementById('stamina-bar').style.width = `${stamina}%`;
+            function draw() {
+                requestAnimationFrame(draw);
+                if (!analyser) return;
 
-            const frequencyBarsArray = document.getElementsByClassName('vis-bar');
-            if (trackingActive && isCalibrated) {
-                for (let bar of frequencyBarsArray) {
-                    bar.style.height = `${Math.random() * 18 + 2}px`;
-                    bar.style.backgroundColor = eyesClosed ? "var(--glitch-red)" : "var(--neon-cyan)";
-                }
-            } else if (!trackingActive) {
-                for (let bar of frequencyBarsArray) bar.style.height = `4px`;
-            }
-
-            if (eyesClosed && !lastEyeState) {
-                spawnAnomalyDorim();
-                playBlinkSound();
-            }
-            lastEyeState = eyesClosed;
-
-            playerContainer.rotation.y = cameraRotation.y;
-            
-            // --- DYNAMIC JUICY EFFECTS: HEAD BOBBING & SCREEN SHAKE LAYERS ---
-            let isMoving = (platform === 'desktop') ? (keys.w || keys.s || keys.a || keys.d) : (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.15);
-            
-            if (isMoving && !eyesClosed) {
-                let bobSpeedScalar = (isRunningIntent && !isStaminaExhausted) ? 14.5 : 8.5;
-                let bobAmplitudeScalar = (isRunningIntent && !isStaminaExhausted) ? 0.14 : 0.06;
+                analyser.getByteFrequencyData(dataArray);
                 
-                headBobTimer += runtimeDelta * bobSpeedScalar;
-                camera.position.y = Math.sin(headBobTimer) * bobAmplitudeScalar;
-                camera.position.x = Math.cos(headBobTimer * 0.5) * (bobAmplitudeScalar * 0.5);
-            } else {
-                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.15);
-                camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.15);
-            }
+                // Clear background cleanly
+                canvasCtx.fillStyle = 'rgb(2, 6, 23)';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Dynamic interpolation profiles mapping constraints logic loops 
-            camera.rotation.x = cameraRotation.x;
-            camera.rotation.z = 0;
-            
-            if (lensShakeDuration > 0) {
-                camera.rotation.z += (Math.random() - 0.5) * 0.035;
-                camera.rotation.x += (Math.random() - 0.5) * 0.025;
-                lensShakeDuration -= runtimeDelta;
-            }
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
 
-            // FOV Lens Transition Profile mappings
-            targetFOV = (isRunningIntent && !isStaminaExhausted && isMoving) ? 76.0 : 65.0;
-            if (camera.fov !== targetFOV) {
-                camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.12);
-                camera.updateProjectionMatrix();
-            }
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
 
-            let translationX = 0, translationZ = 0;
-            let targetSpeedIndex = (isRunningIntent && !isStaminaExhausted) ? 14.5 : 7.5;
+                    // Blend colors dynamically based on frequencies processed
+                    const r = 99 + (i * 2);
+                    const g = 102 - (i * 0.5);
+                    const b = 241 + (barHeight * 0.2);
 
-            if (platform === 'desktop') {
-                if (keys.w) translationZ -= 1;
-                if (keys.s) translationZ += 1;
-                if (keys.a) translationX -= 1;
-                if (keys.d) translationX += 1;
-                if (translationX !== 0 || translationZ !== 0) {
-                    let normalLength = Math.hypot(translationX, translationZ);
-                    translationX /= normalLength; translationZ /= normalLength;
-                }
-            } else {
-                translationX = moveVector.x;
-                translationZ = moveVector.z;
-            }
+                    canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
 
-            const matrixForwardZ = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerContainer.rotation.y);
-            const matrixRightX = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerContainer.rotation.y);
-
-            playerContainer.position.addScaledVector(matrixForwardZ, translationZ * targetSpeedIndex * runtimeDelta);
-            playerContainer.position.addScaledVector(matrixRightX, translationX * targetSpeedIndex * runtimeDelta);
-
-            playerContainer.position.x = Math.max(-mapSize + 6, Math.min(mapSize - 6, playerContainer.position.x));
-            playerContainer.position.z = Math.max(-mapSize + 6, Math.min(mapSize - 6, playerContainer.position.z));
-            playerContainer.position.y = 1.6 + sampleTopologyElevation(playerContainer.position.x, playerContainer.position.z);
-
-            if (isMoving) {
-                stepSoundTimer += runtimeDelta;
-                let stepRate = (isRunningIntent && !isStaminaExhausted) ? 0.28 : 0.45;
-                if (stepSoundTimer >= stepRate) {
-                    playStepSound(isRunningIntent && !isStaminaExhausted);
-                    stepSoundTimer = 0;
+                    x += barWidth;
                 }
             }
-
-            let insideExtractionZone = false;
-            let focusedTargetFlowerGroup = null;
-
-            flowers.forEach(flower => {
-                if (flower.userData.harvested) return;
-                let calculationFlatDistance = Math.hypot(playerContainer.position.x - flower.position.x, playerContainer.position.z - flower.position.z);
-                if (calculationFlatDistance < 4.5) { insideExtractionZone = true; focusedTargetFlowerGroup = flower; }
-            });
-
-            const actionPromptUI = document.getElementById('action-prompt');
-            const progressContainerUI = document.getElementById('action-progress-container');
-            const progressBarUI = document.getElementById('action-progress-bar');
-
-            if (insideExtractionZone) {
-                collectionRingHelper.position.set(focusedTargetFlowerGroup.position.x, focusedTargetFlowerGroup.position.y + 0.05, focusedTargetFlowerGroup.position.z);
-                collectionRingHelper.material.opacity = 0.8;
-
-                if (!eyesClosed) {
-                    actionPromptUI.innerHTML = "QUANTUM EXTRACTION NODE COMPATIBLE.<br><span class='danger-text'>SEAL EYELIDS</span> TO INITIATE RE-MAPPING TRANSCRIPTS.";
-                    progressContainerUI.style.display = 'none';
-                    eyeClosureTimer = 0;
-                } else {
-                    actionPromptUI.innerHTML = "CAPTURING FIELD VECTORS... <span class='danger-text'>MAINTAIN MATRIX LOCK!</span>";
-                    progressContainerUI.style.display = 'block';
-                    
-                    let priorTimerWhole = Math.floor(eyeClosureTimer);
-                    eyeClosureTimer += runtimeDelta;
-                    
-                    if (Math.floor(eyeClosureTimer) > priorTimerWhole) {
-                        spawnAnomalyDorim();
-                    }
-
-                    progressBarUI.style.width = `${Math.min(100, (eyeClosureTimer / targetClosureTime) * 100)}%`;
-
-                    if (eyeClosureTimer >= targetClosureTime) {
-                        focusedTargetFlowerGroup.userData.harvested = true;
-                        focusedTargetFlowerGroup.scale.set(0, 0, 0);
-                        flowersCollected++;
-                        
-                        playCollectionSound();
-                        triggerCollectionFlashVisualEffect(); // Fires dynamic structural extraction blink visual effect feedback loop
-                        
-                        document.getElementById('ui-flowers').innerText = `${flowersCollected} / ${totalFlowersNeeded}`;
-                        eyeClosureTimer = 0;
-                        progressContainerUI.style.display = 'none';
-                        collectionRingHelper.material.opacity = 0;
-                        
-                        if (flowersCollected >= totalFlowersNeeded) {
-                            document.getElementById('ui-objective').innerText = "DISCHARGE SYSTEM LOGS INTO THE QUEEN MATRIX ENVELOPE";
-                            document.getElementById('ui-objective').style.color = "var(--neon-magenta)";
-                        }
-                    }
-                }
-            } else {
-                eyeClosureTimer = 0;
-                progressContainerUI.style.display = 'none';
-                collectionRingHelper.material.opacity = 0;
-                
-                if (flowersCollected < totalFlowersNeeded) {
-                    actionPromptUI.innerText = "";
-                } else {
-                    let currentDistanceToMatrixQueen = playerContainer.position.distanceTo(queenPimporin.position);
-                    if (currentDistanceToMatrixQueen < 9.0) {
-                        actionPromptUI.innerHTML = "<span style='color:var(--terminal-green); font-weight:bold;'>CORE SYNCHRONIZED</span><br>GENERATE MOVEMENT LOOPS TO DISCHARGE DATA WORKSPACE";
-                        if(keys.w || keys.s || keys.a || keys.d || joystickActive || eyesClosed) triggerSimulationVictory();
-                    } else {
-                        actionPromptUI.innerText = "NAVIGATE SECURED WORKSPACE BACK TO CENTRAL ENVELOPE ATOM ORIGIN";
-                    }
-                }
-            }
-
-            let primaryShortestEntityDistance = 1200.0;
-            const entityMovementSpeedCalculated = 4.2 + (flowersCollected * 0.7);
-            const radarElement = document.getElementById('proximity-radar-indicator');
-            let behindThreatDetected = false;
-
-            for (let idx = dorims.length - 1; idx >= 0; idx--) {
-                const individualDorim = dorims[idx];
-                let destinationHeadingVector = new THREE.Vector3().subVectors(playerContainer.position, individualDorim.position);
-                destinationHeadingVector.y = 0; 
-                destinationHeadingVector.normalize();
-
-                let floorYCoordinate = sampleTopologyElevation(individualDorim.position.x, individualDorim.position.z);
-                let proceduralHoverMotion = Math.abs(Math.sin(processTimeSeconds * 3.8 + idx)) * 0.45;
-                
-                let dynamicVelocityIndex = insideExtractionZone ? entityMovementSpeedCalculated * 0.30 : entityMovementSpeedCalculated;
-
-                individualDorim.position.addScaledVector(destinationHeadingVector, dynamicVelocityIndex * runtimeDelta);
-                individualDorim.position.y = floorYCoordinate + 0.7 + proceduralHoverMotion;
-                
-                let rotationalMeshShell = individualDorim.getObjectByName("hostile_geometry_shell");
-                if (rotationalMeshShell) {
-                    rotationalMeshShell.rotation.y += 0.06;
-                    rotationalMeshShell.rotation.z += 0.02;
-                }
-
-                let computationalFlatDistance = Math.hypot(playerContainer.position.x - individualDorim.position.x, playerContainer.position.z - individualDorim.position.z);
-                primaryShortestEntityDistance = Math.min(primaryShortestEntityDistance, computationalFlatDistance);
-
-                const forwardMatrixVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).normalize();
-                let directionToTarget = new THREE.Vector3().subVectors(individualDorim.position, playerContainer.position).normalize();
-                let viewScalarProduct = forwardMatrixVector.dot(directionToTarget);
-
-                if (viewScalarProduct < 0.25 && computationalFlatDistance < 35.0) {
-                    behindThreatDetected = true;
-                }
-
-                if (!insideExtractionZone && computationalFlatDistance < 1.4) {
-                    terminateApplicationLoop();
-                    break;
-                }
-            }
-
-            if (behindThreatDetected && dorims.length > 0) {
-                radarElement.style.opacity = "0.85";
-                let pulseFrequencyScalar = Math.max(100, primaryShortestEntityDistance * 25);
-                radarElement.style.transform = `translate(-50%, -50%) scale(${1 + Math.sin(Date.now() / pulseFrequencyScalar) * 0.25})`;
-            } else {
-                radarElement.style.opacity = "0";
-            }
-
-            flowers.forEach(flower => {
-                if (!flower.userData.harvested) {
-                    let structureCalyxNode = flower.getObjectByName("glowing_node_calyx");
-                    if (structureCalyxNode) structureCalyxNode.rotation.y += 0.025;
-                }
-            });
-
-            if (queenPimporin) {
-                let structuralNucleusNode = queenPimporin.getObjectByName("abstract_nucleus_mesh");
-                let structuralGyroRingNode = queenPimporin.getObjectByName("outer_matrix_gyro_ring");
-                if (structuralNucleusNode) structuralNucleusNode.rotation.y -= 0.008;
-                if (structuralGyroRingNode) { 
-                    structuralGyroRingNode.rotation.z += 0.015; 
-                    structuralGyroRingNode.rotation.y += 0.006; 
-                }
-            }
-
-            if (isAudioInitialized && proximityDangerGain && dorims.length > 0) {
-                let scaledProximityIndex = Math.max(0.001, 1.0 - (primaryShortestEntityDistance / 32.0));
-                let compoundGainIntensity = Math.min(0.7, Math.max(0.001, scaledProximityIndex * scaledProximityIndex));
-                proximityDangerGain.gain.setValueAtTime(compoundGainIntensity, audioCtx.currentTime);
-            } else if (isAudioInitialized && proximityDangerGain) {
-                proximityDangerGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-            }
-
-            renderer.render(scene, camera);
+            draw();
         }
 
-        // --- PROTOCOL CLOSURE AND UN-MOUNT HANDLING ---
-        function initGame() {
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('hud').style.display = 'block';
-            
-            initAudioEngine();
-
-            if (platform === 'mobile') {
-                document.getElementById('mobile-controls').style.display = 'block';
-                setupMobileInputLayout();
-            } else {
-                setupDesktopInputLayout();
-            }
-            
-            setupBiometricsModule();
-            buildWorldGeometry();
-            
-            gameActive = true;
-            clock = new THREE.Clock();
-            animate();
+        // Canvas Responsive Layout Sync Mechanics
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 128; 
         }
-
-        function terminateApplicationLoop() {
-            gameActive = false;
-            if (document.pointerLockElement) document.exitPointerLock();
-            document.getElementById('hud').style.display = 'none';
-            document.getElementById('mobile-controls').style.display = 'none';
-            document.getElementById('gameover-screen').style.display = 'flex';
-            if (isAudioInitialized && proximityDangerGain) proximityDangerGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            playGameOverSound();
-        }
-
-        function triggerSimulationVictory() {
-            gameActive = false;
-            if (document.pointerLockElement) document.exitPointerLock();
-            document.getElementById('hud').style.display = 'none';
-            document.getElementById('mobile-controls').style.display = 'none';
-            document.getElementById('win-screen').style.display = 'flex';
-            if (isAudioInitialized && proximityDangerGain) proximityDangerGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
     </script>
 </body>
 </html>
