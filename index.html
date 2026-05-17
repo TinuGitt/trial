@@ -37,13 +37,12 @@
             color: var(--liminal-white);
         }
 
-        /* CRT Scanline Scan Matrix Grid */
         body::after {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             z-index: 9999;
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
@@ -57,7 +56,6 @@
             z-index: 1;
         }
 
-        /* Structural Framework Interface Architecture Layout */
         .screen {
             position: absolute;
             top: 0; left: 0;
@@ -68,9 +66,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             backdrop-filter: blur(10px);
+            overflow-y: auto;
         }
 
         .terminal-header {
@@ -219,7 +218,6 @@
             box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
         }
 
-        /* Interactive HUD Systems */
         #hud {
             position: absolute;
             top: 0; left: 0;
@@ -270,7 +268,6 @@
         #crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
         #crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
 
-        /* Dynamic Proximity Vector Tracking Matrix Elements */
         #proximity-radar-indicator {
             position: absolute;
             top: 50%; left: 50%;
@@ -285,7 +282,7 @@
 
         #action-prompt {
             position: absolute;
-            bottom: 200px; left: 50%;
+            bottom: 220px; left: 50%;
             transform: translateX(-50%);
             font-size: 1.2rem;
             text-shadow: 0 3px 10px #000;
@@ -299,9 +296,10 @@
 
         #action-progress-container {
             position: absolute;
-            bottom: 150px; left: 50%;
+            bottom: 180px; left: 50%;
             transform: translateX(-50%);
-            width: 400px;
+            width: 320px;
+            max-width: 90%;
             background: rgba(0,0,0,0.95);
             border: 2px solid var(--neon-magenta);
             height: 16px;
@@ -326,21 +324,30 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: #030107;
-            z-index: 5; opacity: 0;
+            z-index: 500; opacity: 0;
             pointer-events: none;
-            transition: opacity 0.08s ease-in-out;
+            transition: opacity 0.04s ease-in-out;
+        }
+
+        #flash-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            z-index: 499; opacity: 0;
+            pointer-events: none;
         }
 
         #webcam-video {
             position: absolute;
             bottom: 30px; right: 30px;
-            width: 160px; height: 120px;
+            width: 140px; height: 105px;
             object-fit: cover;
             border: 2px solid var(--neon-magenta);
             transform: scaleX(-1);
             z-index: 50;
             box-shadow: 0 0 20px rgba(255,0,234,0.35);
             display: none;
+            background: #000;
         }
 
         #mobile-controls {
@@ -349,26 +356,26 @@
             z-index: 80; display: none; pointer-events: none;
         }
         .joystick-zone {
-            position: absolute; bottom: 40px; left: 60px;
-            width: 140px; height: 140px;
+            position: absolute; bottom: 30px; left: 30px;
+            width: 120px; height: 120px;
             background: rgba(255,255,255,0.03);
             border: 2px solid rgba(0, 243, 255, 0.4);
             border-radius: 50%; pointer-events: auto;
         }
         .joystick-knob {
-            position: absolute; top: 48px; left: 48px;
-            width: 44px; height: 44px;
+            position: absolute; top: 40px; left: 40px;
+            width: 40px; height: 40px;
             background: var(--neon-cyan);
             border-radius: 50%;
             box-shadow: 0 0 20px var(--neon-cyan);
         }
         .mobile-btn-container {
-            position: absolute; bottom: 40px; right: 60px;
-            display: flex; gap: 25px; pointer-events: auto;
+            position: absolute; bottom: 30px; right: 30px;
+            display: flex; gap: 15px; pointer-events: auto;
         }
         .mobile-action-btn {
-            width: 90px; height: 90px; border-radius: 50%;
-            color: white; font-weight: bold; font-size: 0.8rem;
+            width: 75px; height: 75px; border-radius: 50%;
+            color: white; font-weight: bold; font-size: 0.75rem;
             display: flex; justify-content: center; align-items: center;
             text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.7);
             letter-spacing: 1px;
@@ -384,12 +391,34 @@
         .status-dot.active { background-color: var(--terminal-green); box-shadow: 0 0 10px var(--terminal-green); }
         .danger-text { color: var(--glitch-red); font-weight: bold; }
         .calibrating-text { color: #ffaa00; font-weight: bold; }
+
+        /* Highly Optimized High-End Responsive Mobile Viewports CSS Definitions */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem !important; letter-spacing: 3px !important; }
+            .subtitle { font-size: 0.8rem !important; margin-bottom: 15px !important; }
+            .container-box { padding: 18px !important; }
+            .instructions { max-height: 160px !important; font-size: 0.85rem !important; margin-bottom: 15px !important; }
+            .options-group { flex-direction: column; gap: 10px; margin-bottom: 15px !important; }
+            .radio-label { padding: 10px 15px !important; font-size: 0.85rem !important; }
+            .btn { padding: 12px 30px !important; font-size: 0.95rem !important; }
+            
+            #stats-panel { top: 15px; left: 15px; width: 170px !important; padding: 10px !important; }
+            #cam-status-panel { top: 15px; right: 15px; width: 160px !important; padding: 10px !important; }
+            #stats-panel div, #cam-status-panel div { font-size: 0.65rem !important; }
+            #stats-panel #ui-flowers { font-size: 0.75rem !important; }
+            .meter-container { height: 6px !important; margin-top: 4px !important; }
+            #audio-visualizer { margin-top: 6px !important; height: 10px !important; }
+            #webcam-video { width: 80px !important; height: 60px !important; bottom: 15px !important; right: 15px !important; }
+            #action-prompt { font-size: 0.85rem !important; bottom: 160px !important; }
+            #action-progress-container { bottom: 130px !important; width: 200px !important; height: 10px !important; }
+        }
     </style>
 </head>
 <body>
 
     <div id="canvas-container"></div>
     <div id="blink-overlay"></div>
+    <div id="flash-overlay"></div>
     <div id="proximity-radar-indicator"></div>
     <video id="webcam-video" autoplay playsinline muted></video>
 
@@ -443,7 +472,7 @@
                     <p>🔮 <highlight>DIRECTIONAL BEACONS:</highlight> Dorims emit high-intensity crimson light beams and tracking matrices. A dynamic <highlight>Proximity Telemetry Radar</highlight> flashes on your HUD screen to warn you of off-screen approaches.</p>
                 </div>
                 <div class="instruct-row">
-                    <p>🛡️ <highlight>KINETIC LANTERN DEFENSE:</highlight> Discharge your <highlight>Lux-Vortex Lantern</highlight> to banish immediate physical threats out of reality phases. Controls: <strong>LEFT CLICK</strong> (Desktop) or <strong>BURST BUTTON</strong> (Mobile). Run via <strong>SHIFT</strong>.</p>
+                    <p>🛡️ <highlight>KINETIC LANTERN DEFENSE:</highlight> Discharge your <highlight>Lux-Vortex Lantern</highlight> to banish immediate physical threats out of reality phases. Controls: <strong>LEFT CLICK</strong> (Desktop) or <strong>LIGHT BURST BUTTON</strong> (Mobile). Run via <strong>SHIFT</strong> or push joystick all the way up.</p>
                 </div>
             </div>
 
@@ -510,6 +539,10 @@
         const maxJoystickDelta = 50;
         let moveVector = { x: 0, z: 0 };
         
+        // Touch camera aiming configuration variables for mobile devices
+        let touchLookId = null;
+        let lastTouchLookPos = { x: 0, y: 0 };
+        
         // Advanced FaceMesh Tracking State Parameters
         let eyesClosed = false;
         let lastEyeState = false;
@@ -517,8 +550,9 @@
         const targetClosureTime = 2.5;
         let earBaseline = 0.0;
         let calibrationFrames = 0;
-        const requiredCalibrationFrames = 60;
+        const requiredCalibrationFrames = 45;
         let isCalibrated = false;
+        let isProcessingMeshFrame = false; // System lock token to prevent frame pileup bugs
         
         // Weapon / Run Energy States
         let weaponCharge = 100.0;
@@ -532,15 +566,23 @@
         const staminaRegenRate = 22.0;
         let isStaminaExhausted = false;
         
+        // Camera structural animations metrics
+        let headBobTimer = 0.0;
+        let lensShakeDuration = 0.0;
+        let targetFOV = 65.0;
+        
         // Render Node Graph Engine Pointers
         let scene, camera, renderer, clock;
         let playerContainer, flashlight;
-        let trees = [];
         let dorims = [];
         let flowers = [];
         let queenPimporin;
         let collectionRingHelper;
         
+        // InstancedMesh architectural performance node references for optimal engine efficiency
+        let treeTrunkInstancedMesh, treeLeavesInstancedMesh;
+        const proceduralTreesCount = 380;
+
         // Dynamic Real-Time Synthesis Audio Matrices
         let audioCtx;
         let masterBusGain;
@@ -665,46 +707,74 @@
         // --- COMPUTER VISION BIOMETRIC SUBSYSTEM ---
         let videoElement = document.getElementById('webcam-video');
         let trackingActive = false;
+        let faceMesh = null;
 
         function setupBiometricsModule() {
-            const faceMesh = new FaceMesh({
+            faceMesh = new FaceMesh({
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
             });
 
             faceMesh.setOptions({
                 maxNumFaces: 1,
                 refineLandmarks: true,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.6
             });
 
             faceMesh.onResults(processMeshTelemetry);
 
-            navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, frameRate: 30 } })
-                .then(stream => {
-                    videoElement.srcObject = stream;
-                    trackingActive = true;
-                    videoElement.style.display = "block";
-                    
-                    const dot = document.getElementById('track-dot');
-                    dot.classList.add('active');
-                    document.getElementById('track-text').innerHTML = "<span class='calibrating-text'>SAMPLING FACE VECTOR MODEL</span>";
-                    
-                    function captureFrameLoop() {
-                        if (gameActive && trackingActive) {
-                            faceMesh.send({ image: videoElement })
-                                .then(() => requestAnimationFrame(captureFrameLoop))
-                                .catch(() => requestAnimationFrame(captureFrameLoop));
-                        } else {
-                            requestAnimationFrame(captureFrameLoop);
-                        }
-                    }
+            // Force strict mobile selfie camera orientation configurations parameters constraints
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "user",
+                    width: { ideal: 320 }, 
+                    height: { ideal: 240 },
+                    frameRate: { ideal: 30 }
+                } 
+            })
+            .then(stream => {
+                videoElement.srcObject = stream;
+                trackingActive = true;
+                videoElement.style.display = "block";
+                
+                const dot = document.getElementById('track-dot');
+                dot.classList.add('active');
+                document.getElementById('track-text').innerHTML = "<span class='calibrating-text'>SAMPLING FACE VECTOR MODEL</span>";
+                
+                videoElement.onloadedmetadata = () => {
+                    videoElement.play();
                     captureFrameLoop();
-                })
-                .catch(err => {
-                    console.warn("Webcam access failure. Standard manual system logic loops mapping loaded.", err);
-                    initializeControlFallbacks();
-                });
+                };
+            })
+            .catch(err => {
+                console.warn("Webcam access failure. Standard manual system logic loops mapping loaded.", err);
+                initializeControlFallbacks();
+            });
+        }
+
+        // Locked execution loop that limits frames dynamically to prevent bottleneck crashes
+        function captureFrameLoop() {
+            if (gameActive && trackingActive && !isProcessingMeshFrame) {
+                // Throttle processing loops on mobile to optimize performance
+                if (platform === 'mobile' && clock && Math.floor(clock.getElapsedTime() * 100) % 3 !== 0) {
+                    requestAnimationFrame(captureFrameLoop);
+                    return;
+                }
+                
+                isProcessingMeshFrame = true;
+                faceMesh.send({ image: videoElement })
+                    .then(() => {
+                        isProcessingMeshFrame = false;
+                        requestAnimationFrame(captureFrameLoop);
+                    })
+                    .catch((e) => {
+                        console.error("Biometrics hardware framework capture dropped exception:", e);
+                        isProcessingMeshFrame = false;
+                        requestAnimationFrame(captureFrameLoop);
+                    });
+            } else {
+                requestAnimationFrame(captureFrameLoop);
+            }
         }
 
         function initializeControlFallbacks() {
@@ -728,10 +798,15 @@
             if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
             const landmarks = results.multiFaceLandmarks[0];
             
-            const leftEAR = Math.hypot(landmarks[386].x - landmarks[374].x, landmarks[386].y - landmarks[374].y) / 
-                            (Math.hypot(landmarks[362].x - landmarks[263].x, landmarks[362].y - landmarks[263].y) || 1);
-            const rightEAR = Math.hypot(landmarks[159].x - landmarks[145].x, landmarks[159].y - landmarks[145].y) / 
-                             (Math.hypot(landmarks[33].x - landmarks[133].x, landmarks[33].y - landmarks[133].y) || 1);
+            // Re-engineered highly responsive mathematical index definitions for real-time validation tracking
+            // Standard specific Eye Aspect Ratio (EAR) metric calculations matrix coordinates
+            const leftVerticalDist = Math.hypot(landmarks[159].x - landmarks[145].x, landmarks[159].y - landmarks[145].y);
+            const leftHorizontalDist = Math.hypot(landmarks[33].x - landmarks[133].x, landmarks[33].y - landmarks[133].y);
+            const leftEAR = leftVerticalDist / (leftHorizontalDist || 1.0);
+
+            const rightVerticalDist = Math.hypot(landmarks[386].x - landmarks[374].x, landmarks[386].y - landmarks[374].y);
+            const rightHorizontalDist = Math.hypot(landmarks[362].x - landmarks[263].x, landmarks[362].y - landmarks[263].y);
+            const rightEAR = rightVerticalDist / (rightHorizontalDist || 1.0);
 
             const currentAverageEAR = (leftEAR + rightEAR) / 2.0;
 
@@ -739,7 +814,7 @@
                 calibrationFrames++;
                 earBaseline += currentAverageEAR;
                 if (calibrationFrames >= requiredCalibrationFrames) {
-                    earBaseline = (earBaseline / requiredCalibrationFrames) * 0.65; 
+                    earBaseline = (earBaseline / requiredCalibrationFrames) * 0.72; // Optimized custom calibration coefficient scaling index mapping
                     isCalibrated = true;
                     document.getElementById('track-text').innerText = "MESH BIOMETRICS SECURED";
                 }
@@ -775,6 +850,8 @@
             
             weaponCharge -= weaponFireCost;
             playWeaponSound();
+
+            lensShakeDuration = 0.22; // Induces high-end camera lens micro-shake kinetic visual feedback matrices logic
 
             const primaryIntensity = flashlight.intensity;
             flashlight.intensity = 24.0;
@@ -839,6 +916,7 @@
             const zone = document.getElementById('joy-zone');
             const knob = document.getElementById('joy-knob');
 
+            // Movement Joystick processing loop allocations maps
             zone.addEventListener('touchstart', (e) => {
                 joystickActive = true;
                 const touchPoint = e.touches[0];
@@ -846,16 +924,11 @@
             });
 
             window.addEventListener('touchmove', (e) => {
-                if (!joystickActive) {
-                    if(e.touches.length > 0 && e.touches[0].clientX > window.innerWidth / 2) {
-                        cameraRotation.y -= 0.035;
-                    }
-                    return;
-                }
-                
-                for(let i=0; i<e.touches.length; i++) {
+                // Identify structural loops and map tracking parameters updates safely
+                for (let i = 0; i < e.touches.length; i++) {
                     const activeTouch = e.touches[i];
-                    if(Math.hypot(activeTouch.clientX - joystickStart.x, activeTouch.clientY - joystickStart.y) < window.innerWidth/2) {
+                    
+                    if (joystickActive && activeTouch.target === zone || activeTouch.target === knob || Math.hypot(activeTouch.clientX - joystickStart.x, activeTouch.clientY - joystickStart.y) < 100 && joystickActive) {
                         let movementDeltaX = activeTouch.clientX - joystickStart.x;
                         let movementDeltaY = activeTouch.clientY - joystickStart.y;
                         const absoluteDistance = Math.hypot(movementDeltaX, movementDeltaY);
@@ -868,25 +941,50 @@
                         knob.style.transform = `translate(${movementDeltaX}px, ${movementDeltaY}px)`;
                         moveVector.x = movementDeltaX / maxJoystickDelta;
                         moveVector.z = movementDeltaY / maxJoystickDelta;
+                    } else if (activeTouch.identifier === touchLookId) {
+                        // High-End Dedicated Touch Look-Around Structural Matrix System Handler logic
+                        let currentLookX = activeTouch.clientX;
+                        let currentLookY = activeTouch.clientY;
+                        
+                        cameraRotation.y += (currentLookX - lastTouchLookPos.x) * 0.007;
+                        cameraRotation.x += (currentLookY - lastTouchLookPos.y) * 0.005;
+                        cameraRotation.x = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, cameraRotation.x));
+                        
+                        lastTouchLookPos = { x: currentLookX, y: currentLookY };
                     }
                 }
             });
 
-            window.addEventListener('touchend', () => {
-                joystickActive = false;
-                knob.style.transform = 'translate(0px, 0px)';
-                moveVector = { x: 0, z: 0 };
+            window.addEventListener('touchstart', (e) => {
+                for (let i = 0; i < e.touches.length; i++) {
+                    const activeTouch = e.touches[i];
+                    // If the look window interaction vector maps onto the right side half of the layout, map look mechanics parameters constraints 
+                    if (activeTouch.clientX > window.innerWidth / 2 && touchLookId === null) {
+                        touchLookId = activeTouch.identifier;
+                        lastTouchLookPos = { x: activeTouch.clientX, y: activeTouch.clientY };
+                    }
+                }
             });
 
-            let horizontalTrackerX = 0;
-            window.addEventListener('touchstart', (e) => {
-                if(e.touches[0].clientX > window.innerWidth / 2) horizontalTrackerX = e.touches[0].clientX;
-            });
-            window.addEventListener('touchmove', (e) => {
-                if(e.touches[0].clientX > window.innerWidth / 2 && !joystickActive) {
-                    let modernX = e.touches[0].clientX;
-                    cameraRotation.y += (modernX - horizontalTrackerX) * 0.006;
-                    horizontalTrackerX = modernX;
+            window.addEventListener('touchend', (e) => {
+                let joystickReleased = true;
+                let lookReleased = true;
+
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === touchLookId) lookReleased = false;
+                }
+                
+                if (e.touches.length === 0 || (joystickActive && e.target === zone)) {
+                    joystickReleased = true;
+                }
+
+                if (joystickReleased) {
+                    joystickActive = false;
+                    knob.style.transform = 'translate(0px, 0px)';
+                    moveVector = { x: 0, z: 0 };
+                }
+                if (lookReleased) {
+                    touchLookId = null;
                 }
             });
 
@@ -925,10 +1023,17 @@
             flashlight.coneMeshHelper.visible = false;
             camera.add(flashlight.coneMeshHelper);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: platform === 'desktop', powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Highly optimized mobile shadow architectures definitions
+            if (platform === 'desktop') {
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            } else {
+                renderer.shadowMap.enabled = false; // Bypasses shadow parsing entirely on mobile configurations for flawless framerate matrix stability
+            }
+            
             mountingContainer.appendChild(renderer.domElement);
 
             const skyAmbientLight = new THREE.AmbientLight(0xffffff, 0.65);
@@ -936,12 +1041,14 @@
 
             const directSunLight = new THREE.DirectionalLight(0xe4edff, 0.45);
             directSunLight.position.set(40, 80, 20);
-            directSunLight.castShadow = true;
-            directSunLight.shadow.mapSize.width = 2048;
-            directSunLight.shadow.mapSize.height = 2048;
+            if (platform === 'desktop') {
+                directSunLight.castShadow = true;
+                directSunLight.shadow.mapSize.width = 1024;
+                directSunLight.shadow.mapSize.height = 1024;
+            }
             scene.add(directSunLight);
 
-            const terrainGeo = new THREE.PlaneGeometry(mapSize * 2.5, mapSize * 2.5, 80, 80);
+            const terrainGeo = new THREE.PlaneGeometry(mapSize * 2.5, mapSize * 2.5, 60, 60);
             const trackingPositions = terrainGeo.attributes.position;
             
             for (let i = 0; i < trackingPositions.count; i++) {
@@ -960,7 +1067,7 @@
             terrainPlaneMesh.receiveShadow = true;
             scene.add(terrainPlaneMesh);
 
-            proceduralForestSpawningSystem();
+            proceduralInstancedForestSpawningSystem();
             deployQuantumFlowers();
             instantiateCentralMatrixEntity();
 
@@ -977,38 +1084,53 @@
             return Math.sin(x * 0.04) * Math.cos(z * 0.04) * 1.8 + Math.cos(x * 0.08) * 0.4;
         }
 
-        function proceduralForestSpawningSystem() {
-            const absoluteDensityCount = 420;
+        // RE-ENGINEERED INSTANCEDMESH GRAPH PIPELINE: Reduces draw calls from 840 individual meshes to exactly 2 calls total
+        function proceduralInstancedForestSpawningSystem() {
             const treeTrunkGeo = new THREE.CylinderGeometry(0.12, 0.35, 14, 4);
+            treeTrunkGeo.translate(0, 7, 0); // Modifies vertex matrix origin parameters constraints
             const leafyCrownGeo = new THREE.DodecahedronGeometry(2.5, 0);
+            leafyCrownGeo.translate(0, 13, 0);
             
             const timberMat = new THREE.MeshStandardMaterial({ color: 0x484d52, roughness: 0.9 });
             const foliageMat = new THREE.MeshStandardMaterial({ color: 0x8fa0ae, roughness: 0.8, flatShading: true });
 
-            for (let i = 0; i < absoluteDensityCount; i++) {
+            treeTrunkInstancedMesh = new THREE.InstancedMesh(treeTrunkGeo, timberMat, proceduralTreesCount);
+            treeLeavesInstancedMesh = new THREE.InstancedMesh(leafyCrownGeo, foliageMat, proceduralTreesCount);
+            
+            if (platform === 'desktop') {
+                treeTrunkInstancedMesh.castShadow = true;
+                treeLeavesInstancedMesh.castShadow = true;
+            }
+
+            let validInstancesSpawningCounter = 0;
+            const matrixTransformDummy = new THREE.Object3D();
+
+            for (let i = 0; i < proceduralTreesCount * 1.5; i++) {
+                if (validInstancesSpawningCounter >= proceduralTreesCount) break;
+
                 const sampleX = (Math.random() - 0.5) * (mapSize * 2.3);
                 const sampleZ = (Math.random() - 0.5) * (mapSize * 2.3);
                 
                 if (Math.hypot(sampleX, sampleZ) < 20 || Math.hypot(sampleX, sampleZ - 50) < 10) continue;
 
-                const corporateGroup = new THREE.Group();
                 const floorHeightY = sampleTopologyElevation(sampleX, sampleZ);
 
-                const trunkMesh = new THREE.Mesh(treeTrunkGeo, timberMat);
-                trunkMesh.position.y = 7;
-                trunkMesh.castShadow = true;
-                corporateGroup.add(trunkMesh);
+                // Build structural matrix transformations metrics calculations indices
+                matrixTransformDummy.position.set(sampleX, floorHeightY, sampleZ);
+                matrixTransformDummy.scale.set(1.0, 1.0, 1.0);
+                matrixTransformDummy.rotation.set(0, Math.random() * Math.PI, 0);
+                matrixTransformDummy.updateMatrix();
+                treeTrunkInstancedMesh.setMatrixAt(validInstancesSpawningCounter, matrixTransformDummy.matrix);
 
-                const foliageMesh = new THREE.Mesh(leafyCrownGeo, foliageMat);
-                foliageMesh.position.y = 13;
-                foliageMesh.scale.set(1.1, 1.6, 1.1);
-                foliageMesh.castShadow = true;
-                corporateGroup.add(foliageMesh);
+                matrixTransformDummy.scale.set(1.1, 1.6, 1.1);
+                matrixTransformDummy.updateMatrix();
+                treeLeavesInstancedMesh.setMatrixAt(validInstancesSpawningCounter, matrixTransformDummy.matrix);
 
-                corporateGroup.position.set(sampleX, floorHeightY, sampleZ);
-                scene.add(corporateGroup);
-                trees.push(corporateGroup);
+                validInstancesSpawningCounter++;
             }
+
+            scene.add(treeTrunkInstancedMesh);
+            scene.add(treeLeavesInstancedMesh);
         }
 
         function deployQuantumFlowers() {
@@ -1086,7 +1208,6 @@
             scene.add(queenPimporin);
         }
 
-        // --- NEW FEATURE: EVIL DORIMS DIRECTIONAL BEACON AND LIGHT GENERATION ---
         function spawnAnomalyDorim() {
             const rotationalRadian = Math.random() * Math.PI * 2;
             const offsetDistance = 22 + Math.random() * 10; 
@@ -1102,7 +1223,6 @@
             });
             const shellMesh = new THREE.Mesh(shellGeometry, shellMaterialMat);
             shellMesh.position.y = 0.9;
-            shellMesh.castShadow = true;
             shellMesh.name = "hostile_geometry_shell";
             anomalyCompositeGroup.add(shellMesh);
 
@@ -1120,7 +1240,6 @@
                 shellMesh.add(individualEyeMesh);
             });
 
-            // Added dynamic structural beacon parameters for visibility handling
             const monsterLanternLight = new THREE.PointLight(0xff0055, 3.5, 18.0, 1.5);
             monsterLanternLight.position.set(0, 1.2, 0);
             anomalyCompositeGroup.add(monsterLanternLight);
@@ -1145,6 +1264,23 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        function triggerCollectionFlashVisualEffect() {
+            const overlay = document.getElementById('flash-overlay');
+            overlay.style.opacity = '0.9';
+            
+            let currentOpacity = 0.9;
+            function fade() {
+                currentOpacity -= 0.08;
+                if (currentOpacity > 0) {
+                    overlay.style.opacity = currentOpacity;
+                    requestAnimationFrame(fade);
+                } else {
+                    overlay.style.opacity = '0';
+                }
+            }
+            setTimeout(fade, 40);
+        }
+
         // --- CORE REAL-TIME SIMULATION ENGINE ---
         function animate() {
             if (!gameActive) return;
@@ -1158,7 +1294,10 @@
             }
             document.getElementById('weapon-charge-bar').style.width = `${weaponCharge}%`;
 
-            let isRunningIntent = (platform === 'desktop') ? (keys.shift && (keys.w || keys.s || keys.a || keys.d)) : (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.85);
+            // On mobile devices, push joystick to edge to trigger sprint mode
+            let isRunningIntent = (platform === 'desktop') ? 
+                (keys.shift && (keys.w || keys.s || keys.a || keys.d)) : 
+                (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.88);
             
             if (isStaminaExhausted) {
                 stamina = Math.min(maxStamina, stamina + (staminaRegenRate * runtimeDelta));
@@ -1188,7 +1327,38 @@
             lastEyeState = eyesClosed;
 
             playerContainer.rotation.y = cameraRotation.y;
+            
+            // --- DYNAMIC JUICY EFFECTS: HEAD BOBBING & SCREEN SHAKE LAYERS ---
+            let isMoving = (platform === 'desktop') ? (keys.w || keys.s || keys.a || keys.d) : (joystickActive && Math.hypot(moveVector.x, moveVector.z) > 0.15);
+            
+            if (isMoving && !eyesClosed) {
+                let bobSpeedScalar = (isRunningIntent && !isStaminaExhausted) ? 14.5 : 8.5;
+                let bobAmplitudeScalar = (isRunningIntent && !isStaminaExhausted) ? 0.14 : 0.06;
+                
+                headBobTimer += runtimeDelta * bobSpeedScalar;
+                camera.position.y = Math.sin(headBobTimer) * bobAmplitudeScalar;
+                camera.position.x = Math.cos(headBobTimer * 0.5) * (bobAmplitudeScalar * 0.5);
+            } else {
+                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.15);
+                camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.15);
+            }
+
+            // Dynamic interpolation profiles mapping constraints logic loops 
             camera.rotation.x = cameraRotation.x;
+            camera.rotation.z = 0;
+            
+            if (lensShakeDuration > 0) {
+                camera.rotation.z += (Math.random() - 0.5) * 0.035;
+                camera.rotation.x += (Math.random() - 0.5) * 0.025;
+                lensShakeDuration -= runtimeDelta;
+            }
+
+            // FOV Lens Transition Profile mappings
+            targetFOV = (isRunningIntent && !isStaminaExhausted && isMoving) ? 76.0 : 65.0;
+            if (camera.fov !== targetFOV) {
+                camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.12);
+                camera.updateProjectionMatrix();
+            }
 
             let translationX = 0, translationZ = 0;
             let targetSpeedIndex = (isRunningIntent && !isStaminaExhausted) ? 14.5 : 7.5;
@@ -1217,7 +1387,7 @@
             playerContainer.position.z = Math.max(-mapSize + 6, Math.min(mapSize - 6, playerContainer.position.z));
             playerContainer.position.y = 1.6 + sampleTopologyElevation(playerContainer.position.x, playerContainer.position.z);
 
-            if (translationX !== 0 || translationZ !== 0 || (platform === 'mobile' && joystickActive)) {
+            if (isMoving) {
                 stepSoundTimer += runtimeDelta;
                 let stepRate = (isRunningIntent && !isStaminaExhausted) ? 0.28 : 0.45;
                 if (stepSoundTimer >= stepRate) {
@@ -1264,7 +1434,9 @@
                         focusedTargetFlowerGroup.userData.harvested = true;
                         focusedTargetFlowerGroup.scale.set(0, 0, 0);
                         flowersCollected++;
+                        
                         playCollectionSound();
+                        triggerCollectionFlashVisualEffect(); // Fires dynamic structural extraction blink visual effect feedback loop
                         
                         document.getElementById('ui-flowers').innerText = `${flowersCollected} / ${totalFlowersNeeded}`;
                         eyeClosureTimer = 0;
@@ -1295,7 +1467,6 @@
                 }
             }
 
-            // --- RE-ENGINEERED: VECTOR THREAT PATHFINDING & ADVANCED BEACON HUD SYSTEM ---
             let primaryShortestEntityDistance = 1200.0;
             const entityMovementSpeedCalculated = 4.2 + (flowersCollected * 0.7);
             const radarElement = document.getElementById('proximity-radar-indicator');
@@ -1324,7 +1495,6 @@
                 let computationalFlatDistance = Math.hypot(playerContainer.position.x - individualDorim.position.x, playerContainer.position.z - individualDorim.position.z);
                 primaryShortestEntityDistance = Math.min(primaryShortestEntityDistance, computationalFlatDistance);
 
-                // Calculate whether the threat vector is active outside the user's field of view bounds
                 const forwardMatrixVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).normalize();
                 let directionToTarget = new THREE.Vector3().subVectors(individualDorim.position, playerContainer.position).normalize();
                 let viewScalarProduct = forwardMatrixVector.dot(directionToTarget);
@@ -1339,7 +1509,6 @@
                 }
             }
 
-            // Dynamic Proximity HUD Trigger Engine Logic Updates
             if (behindThreatDetected && dorims.length > 0) {
                 radarElement.style.opacity = "0.85";
                 let pulseFrequencyScalar = Math.max(100, primaryShortestEntityDistance * 25);
@@ -1400,7 +1569,7 @@
 
         function terminateApplicationLoop() {
             gameActive = false;
-            document.exitPointerLock();
+            if (document.pointerLockElement) document.exitPointerLock();
             document.getElementById('hud').style.display = 'none';
             document.getElementById('mobile-controls').style.display = 'none';
             document.getElementById('gameover-screen').style.display = 'flex';
@@ -1410,7 +1579,7 @@
 
         function triggerSimulationVictory() {
             gameActive = false;
-            document.exitPointerLock();
+            if (document.pointerLockElement) document.exitPointerLock();
             document.getElementById('hud').style.display = 'none';
             document.getElementById('mobile-controls').style.display = 'none';
             document.getElementById('win-screen').style.display = 'flex';
