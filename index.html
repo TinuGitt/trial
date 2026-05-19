@@ -3,429 +3,652 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuraWave - Immersive Audio Experience</title>
-    <!-- Tailwind CSS for sleek UI -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- MediaPipe Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/vision_bundle.js" crossorigin="anonymous"></script>
+    <title>FoldAlign Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
     <style>
-        .glow-effect {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        :root {
+            --bg-color: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.7);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
-        /* Pulse animation for the camera status */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Video Background */
+        #camera-feed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            background: #0f172a;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(2, 6, 23, 0.4) 0%, rgba(2, 6, 23, 0.9) 100%);
+            z-index: 1;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .grid-overlay.active {
+            opacity: 1;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .icon-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 99px;
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .dot.error {
+            background-color: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+            animation: none;
+        }
+
+        /* Guide Overlay */
+        .guide-container {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 24px;
+        }
+
+        #guide-svg {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            max-height: 55vh;
+            overflow: visible;
+        }
+
+        /* SVG Animations */
+        @keyframes slideRight {
+            0% { transform: translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(12px); opacity: 0; }
+        }
+        .animate-arrow-right { animation: slideRight 1.5s ease-in-out infinite; }
+
+        @keyframes slideLeft {
+            0% { transform: translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(-12px); opacity: 0; }
+        }
+        .animate-arrow-left { animation: slideLeft 1.5s ease-in-out infinite; }
+
+        @keyframes slideUp {
+            0% { transform: translateY(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-12px); opacity: 0; }
+        }
+        .animate-arrow-up { animation: slideUp 1.5s ease-in-out infinite; }
+        
+        .guide-container svg * {
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: relative;
+            z-index: 10;
+            margin: auto 24px 32px 24px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 28px;
+            max-width: 800px;
+            align-self: center;
+            width: calc(100% - 48px);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #step-number {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            width: 20%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .text-content h2, .text-content p {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        h2 {
+            font-size: 2.25rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 16px 28px;
+            border-radius: 16px;
+            font-size: 1.0625rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            flex: 2;
+            box-shadow: 0 4px 20px -4px rgba(59, 130, 246, 0.6);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 8px 25px -4px rgba(59, 130, 246, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            flex: 1;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-        .pulse-fast { animation: pulse 1s infinite; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header { padding: 16px 20px; }
+            .control-panel {
+                margin: auto 16px 24px 16px;
+                padding: 24px;
+                width: calc(100% - 32px);
+                border-radius: 24px;
+            }
+            h2 { font-size: 1.75rem; }
+            p { font-size: 1rem; }
+            .logo { font-size: 1.1rem; }
+            .status-text { display: none; }
+            .status-indicator { padding: 8px; }
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
+<body>
+    <div class="app-container">
+        <!-- Video Background -->
+        <video id="camera-feed" autoplay playsinline muted></video>
+        <div class="video-overlay"></div>
+        <div class="grid-overlay" id="grid-overlay"></div>
 
-    <!-- Header -->
-    <header class="border-b border-slate-800/80 backdrop-blur-md bg-slate-950/50 sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="h-9 w-9 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/>
+                </svg>
+                FoldAlign
             </div>
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">AuraWave</span>
-        </div>
-        <div id="statusBadge" class="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-xs text-slate-400">
-            <span class="h-2 w-2 rounded-full bg-amber-500 pulse-fast" id="statusDot"></span>
-            <span id="statusText">Initializing MediaPipe...</span>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-6xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start flex-grow">
-        
-        <!-- Left Column: Vision & Visualizer -->
-        <div class="lg:col-span-1 space-y-6">
-            <!-- Camera / Tracking Box -->
-            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 glow-effect relative overflow-hidden">
-                <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                    <span>EYE-TRACKING FEED</span>
-                    <span id="eyeState" class="text-xs text-indigo-400 font-mono tracking-wider">OPEN</span>
-                </h3>
-                <div class="relative rounded-xl overflow-hidden bg-slate-950 aspect-video flex items-center justify-center border border-slate-800">
-                    <video id="webcam" autoplay playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
-                    <div id="cameraPrompt" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 text-center">
-                        <p class="text-sm text-slate-400 mb-3">Allow camera access to enable the blink-muffle effect.</p>
-                        <button id="startCamBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2 rounded-lg transition-all active:scale-95 shadow-lg shadow-indigo-600/20">Enable Camera</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Audio Waveform Visualizer -->
-            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 glow-effect">
-                <h3 class="text-sm font-semibold text-slate-400 mb-3">AUDIO SPECTRUM</h3>
-                <canvas id="visualizer" class="w-full h-32 bg-slate-950 rounded-xl border border-slate-800"></canvas>
-            </div>
-        </div>
-
-        <!-- Right Column: Audio Upload & FX Controls -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Upload & Playback Dashboard -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 rounded-2xl p-6 glow-effect">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <!-- Custom Upload Button -->
-                    <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/40 hover:bg-slate-950/80 transition-all rounded-xl p-6 cursor-pointer group md:w-2/3">
-                        <svg class="w-8 h-8 text-slate-500 group-hover:text-indigo-400 mb-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-slate-100" id="fileName">Upload local audio file</span>
-                        <span class="text-xs text-slate-500 mt-1">MP3, WAV, FLAC, M4A supported</span>
-                        <input type="file" id="audioFile" accept="audio/*" class="hidden">
-                    </label>
-
-                    <!-- Player Core UI -->
-                    <div class="flex flex-col justify-center items-center md:items-end gap-3 md:w-1/3">
-                        <audio id="audioPlayer" controls class="hidden"></audio>
-                        <button id="playBtn" disabled class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center shadow-inner cursor-not-allowed transition-all duration-300" title="Upload a track first">
-                            <svg class="w-8 h-8 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-                        </button>
-                        <span class="text-xs text-slate-500 uppercase font-semibold tracking-wider text-center md:text-right" id="trackStatus">No track loaded</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FX Grid Dashboard -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Underwater Effect Panel -->
-                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <h4 class="font-semibold text-indigo-400 flex items-center gap-2">
-                                <span class="h-2 w-2 rounded-full bg-blue-400 shadow-md shadow-blue-400/50"></span>
-                                Underwater Muffle
-                            </h4>
-                            <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800/60 px-2 py-0.5 rounded-md">Eye Reactive</span>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Closes your eyes or blinks to activate a low-pass filter, shifting the audio environment entirely underwater.</p>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs text-slate-400 mb-1">
-                            <span>Filter Frequency</span>
-                            <span id="cutoffVal" class="font-mono">20000 Hz</span>
-                        </div>
-                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
-                            <div id="cutoffBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-full transition-all duration-200"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Effects Control Room -->
-                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-                    <h4 class="font-semibold text-purple-400 flex items-center gap-2">
-                        <span class="h-2 w-2 rounded-full bg-purple-400 shadow-md shadow-purple-400/50"></span>
-                        Acoustic Customizer
-                    </h4>
-                    
-                    <!-- 3D Spatial Panning -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center text-xs">
-                            <label for="panSpeed" class="text-slate-300">Auto-Spatial Pan Speed</label>
-                            <span id="panVal" class="font-mono text-slate-500">Off</span>
-                        </div>
-                        <input type="range" id="panSpeed" min="0" max="10" step="0.5" value="0" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                    </div>
-
-                    <!-- Ambient Reverb/Drive -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center text-xs">
-                            <label for="driveGain" class="text-slate-300">Warm Analog Drive</label>
-                            <span id="driveVal" class="font-mono text-slate-500">0%</span>
-                        </div>
-                        <input type="range" id="driveGain" min="0" max="100" value="0" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="text-center py-4 text-xs text-slate-600 border-t border-slate-900/60 bg-slate-950/20">
-        Built with Web Audio API & MediaPipe Vision Tasks. Keep eyes open for high fidelity; blink to dive deep.
-    </footer>
-
-    <!-- Main Core Logic Execution -->
-    <script type="module">
-        import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/vision_bundle.js";
-
-        // Global States & Node Architecture Variables
-        let audioCtx, audioSource, analyser, muffleFilter, pannerNode, waveShaperNode;
-        let faceLandmarker;
-        let webcamRunning = false;
-        let animationFrameId;
-        let spatialAngle = 0;
-
-        // DOM Element Configurations
-        const audioPlayer = document.getElementById('audioPlayer');
-        const audioFileInput = document.getElementById('audioFile');
-        const playBtn = document.getElementById('playBtn');
-        const fileNameDisplay = document.getElementById('fileName');
-        const trackStatusText = document.getElementById('trackStatus');
-        const startCamBtn = document.getElementById('startCamBtn');
-        const video = document.getElementById('webcam');
-        const cameraPrompt = document.getElementById('cameraPrompt');
-        
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const eyeStateDisplay = document.getElementById('eyeState');
-        const cutoffValDisplay = document.getElementById('cutoffVal');
-        const cutoffBar = document.getElementById('cutoffBar');
-        
-        const panSpeedInput = document.getElementById('panSpeed');
-        const panValDisplay = document.getElementById('panVal');
-        const driveGainInput = document.getElementById('driveGain');
-        const driveValDisplay = document.getElementById('driveVal');
-        
-        const canvas = document.getElementById('visualizer');
-        const canvasCtx = canvas.getContext('2d');
-
-        // Initialize MediaPipe Face Landmarker Model
-        async function initializeFaceTracking() {
-            try {
-                const filesetResolver = await FilesetResolver.forVisionTasks(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
-                );
-                faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-                    baseOptions: {
-                        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker_with_blendshapes/float16/1/face_landmarker_with_blendshapes.task`,
-                        delegate: "GPU"
-                    },
-                    outputBlendshapes: true,
-                    runningMode: "VIDEO",
-                    numFaces: 1
-                });
-                statusDot.className = "h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
-                statusText.innerText = "Tracking Engine Ready";
-            } catch (error) {
-                console.error("MediaPipe failed initialization:", error);
-                statusText.innerText = "Tracking Offline";
-                statusDot.className = "h-2 w-2 rounded-full bg-rose-500";
-            }
-        }
-        initializeFaceTracking();
-
-        // Build Digital Signal Processing (DSP) Audio Graph Network
-        function buildAudioGraph() {
-            if (audioCtx) return; // Prevent recreation safety lock
-
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            audioSource = audioCtx.createMediaElementSource(audioPlayer);
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-
-            // Setup Underwater Muffle Filter (Lowpass)
-            muffleFilter = audioCtx.createBiquadFilter();
-            muffleFilter.type = 'lowpass';
-            muffleFilter.frequency.setValueAtTime(20000, audioCtx.currentTime); // Open setting
-
-            // Setup 3D Stereo Spatial Panner Node
-            pannerNode = audioCtx.createStereoPanner();
-            pannerNode.pan.setValueAtTime(0, audioCtx.currentTime);
-
-            // Setup Analog Warmth Distortion Node
-            waveShaperNode = audioCtx.createWaveShaper();
-            waveShaperNode.curve = makeDistortionCurve(0);
-            waveShaperNode.oversample = '4x';
-
-            // Connect processing chain: Source -> Muffle -> Drive -> Pan -> Analyser -> Output
-            audioSource.connect(muffleFilter);
-            muffleFilter.connect(waveShaperNode);
-            waveShaperNode.connect(pannerNode);
-            pannerNode.connect(analyser);
-            analyser.connect(audioCtx.destination);
             
-            renderVisualizer();
-        }
+            <div class="header-controls">
+                <button id="btn-grid" class="icon-btn" title="Toggle Alignment Grid">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3h18v18H3z"/>
+                        <path d="M3 9h18"/>
+                        <path d="M3 15h18"/>
+                        <path d="M9 3v18"/>
+                        <path d="M15 3v18"/>
+                    </svg>
+                </button>
+                <div class="status-indicator" id="camera-status">
+                    <span class="dot"></span> <span class="status-text">Camera Active</span>
+                </div>
+            </div>
+        </header>
 
-        // Mathematical Function to generate Soft-Clipping Distortion Curves
-        function makeDistortionCurve(amount) {
-            let k = typeof amount === 'number' ? amount : 50,
-                n_samples = 44100,
-                curve = new Float32Array(n_samples),
-                deg = Math.PI / 180,
-                i = 0,
-                x;
-            for ( ; i < n_samples; ++i ) {
-                x = ( i * 2 ) / n_samples - 1;
-                curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+        <!-- Guide Overlay (SVG) -->
+        <div class="guide-container">
+            <svg id="guide-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                <!-- SVG content injected via JS -->
+            </svg>
+        </div>
+
+        <!-- Controls / Instructions -->
+        <div class="control-panel">
+            <div class="step-indicator">
+                <span id="step-number">Step 1 of 5</span>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="text-content">
+                <h2 id="step-title">Align Garment</h2>
+                <p id="step-description">Place the t-shirt face down. Align it within the dashed guide. Smooth out all wrinkles.</p>
+            </div>
+            
+            <div class="button-group">
+                <button id="btn-prev" class="btn btn-secondary" disabled>Previous</button>
+                <button id="btn-next" class="btn btn-primary">
+                    Next Step 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const steps = [
+            {
+                title: "Align Garment",
+                desc: "Place the t-shirt face down. Align it within the dashed guides below. Smooth out all wrinkles.",
+                render: () => `
+                    <!-- Main Body -->
+                    <rect x="25" y="15" width="50" height="70" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.8)" stroke-width="0.8" stroke-dasharray="2,3" rx="4" />
+                    <!-- Left Sleeve -->
+                    <polygon points="25,20 8,30 15,45 25,38" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="0.8" stroke-dasharray="2,3" stroke-linejoin="round"/>
+                    <!-- Right Sleeve -->
+                    <polygon points="75,20 92,30 85,45 75,38" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="0.8" stroke-dasharray="2,3" stroke-linejoin="round"/>
+                    <!-- Collar -->
+                    <path d="M 40 15 Q 50 25 60 15" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="0.8" stroke-dasharray="2,3" stroke-linecap="round"/>
+                    
+                    <text x="50" y="50" fill="rgba(255,255,255,0.9)" font-size="3.5" font-weight="600" text-anchor="middle" letter-spacing="1">ALIGN T-SHIRT HERE</text>
+                `
+            },
+            {
+                title: "Fold Left Side",
+                desc: "Fold the left sleeve and side towards the center. The edge should align roughly with the center line.",
+                render: () => `
+                    <!-- Base alignment (faint) -->
+                    <rect x="25" y="15" width="50" height="70" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5" rx="4" />
+                    <!-- Center line -->
+                    <line x1="50" y1="15" x2="50" y2="85" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" stroke-dasharray="1,2" />
+                    
+                    <!-- Left Folded Area -->
+                    <rect x="33" y="15" width="17" height="70" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" stroke-width="0.8" rx="2" style="filter: drop-shadow(0 0 6px rgba(59,130,246,0.4))"/>
+                    
+                    <!-- Animated Arrow -->
+                    <g class="animate-arrow-right">
+                        <line x1="12" y1="50" x2="38" y2="50" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"/>
+                        <polyline points="33,45 38,50 33,55" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                `
+            },
+            {
+                title: "Fold Right Side",
+                desc: "Fold the right sleeve and side towards the center, overlapping the left fold to create a straight rectangle.",
+                render: () => `
+                    <!-- Base alignment -->
+                    <rect x="25" y="15" width="50" height="70" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="4" />
+                    
+                    <!-- Previous Fold (Left) - now faint -->
+                    <rect x="33" y="15" width="17" height="70" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" rx="2" />
+                    
+                    <!-- Right Folded Area -->
+                    <rect x="50" y="15" width="17" height="70" fill="rgba(139, 92, 246, 0.2)" stroke="#8b5cf6" stroke-width="0.8" rx="2" style="filter: drop-shadow(0 0 6px rgba(139,92,246,0.4))"/>
+                    
+                    <!-- Animated Arrow -->
+                    <g class="animate-arrow-left">
+                        <line x1="88" y1="50" x2="62" y2="50" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
+                        <polyline points="67,45 62,50 67,55" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                `
+            },
+            {
+                title: "Fold Bottom Up",
+                desc: "Fold the bottom half of the shirt upwards so the bottom edge meets the top collar area.",
+                render: () => `
+                    <!-- Fully Folded Vertical Rectangle -->
+                    <rect x="33" y="15" width="34" height="70" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5" rx="2" />
+                    
+                    <!-- Top Half (Target) -->
+                    <rect x="33" y="15" width="34" height="35" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="0.8" rx="2" style="filter: drop-shadow(0 0 6px rgba(16,185,129,0.4))"/>
+                    
+                    <!-- Animated Arrow -->
+                    <g class="animate-arrow-up">
+                        <line x1="50" y1="80" x2="50" y2="45" stroke="#34d399" stroke-width="1.5" stroke-linecap="round"/>
+                        <polyline points="45,50 50,45 55,50" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                `
+            },
+            {
+                title: "Final Result",
+                desc: "Flip the shirt over. You now have a perfectly folded, compact t-shirt ready for storage.",
+                render: () => `
+                    <!-- Final Folded Shirt -->
+                    <rect x="33" y="32" width="34" height="35" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1" rx="3" style="filter: drop-shadow(0 0 10px rgba(16,185,129,0.5))"/>
+                    
+                    <!-- Collar Detail -->
+                    <path d="M 44 32 Q 50 38 56 32" fill="none" stroke="#10b981" stroke-width="0.8" stroke-linecap="round"/>
+                    
+                    <!-- Success Checkmark -->
+                    <circle cx="50" cy="50" r="7" fill="#10b981" />
+                    <polyline points="47,50 49,52 54,47" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <text x="50" y="75" fill="#10b981" font-size="4" font-weight="600" text-anchor="middle" letter-spacing="1">PERFECT FOLD</text>
+                `
             }
-            return curve;
-        }
+        ];
 
-        // Local Audio Input Handling Stream
-        audioFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                fileNameDisplay.innerText = file.name;
-                const fileURL = URL.createObjectURL(file);
-                audioPlayer.src = fileURL;
+        // UI State
+        let currentStep = 0;
+        
+        // DOM Elements
+        const svgGuide = document.getElementById('guide-svg');
+        const stepTitle = document.getElementById('step-title');
+        const stepDesc = document.getElementById('step-description');
+        const stepNumber = document.getElementById('step-number');
+        const progressFill = document.getElementById('progress-fill');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnGrid = document.getElementById('btn-grid');
+        const gridOverlay = document.getElementById('grid-overlay');
+
+        // Render Initial Step
+        renderStep(0);
+
+        function renderStep(index) {
+            const step = steps[index];
+            
+            // Fade out text
+            stepTitle.style.opacity = '0';
+            stepDesc.style.opacity = '0';
+            stepTitle.style.transform = 'translateY(5px)';
+            stepDesc.style.transform = 'translateY(5px)';
+            
+            setTimeout(() => {
+                // Update text content
+                stepTitle.textContent = step.title;
+                stepDesc.textContent = step.desc;
                 
-                // Wake up styling configurations
-                playBtn.disabled = false;
-                playBtn.className = "w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 transform active:scale-95 transition-all cursor-pointer";
-                playBtn.title = "Play/Pause Track";
-                trackStatusText.innerText = "Track Loaded";
-                
-                buildAudioGraph();
-            }
-        });
+                // Fade in text
+                stepTitle.style.opacity = '1';
+                stepDesc.style.opacity = '1';
+                stepTitle.style.transform = 'translateY(0)';
+                stepDesc.style.transform = 'translateY(0)';
+            }, 250);
 
-        // Global Play/Pause Control Management
-        playBtn.addEventListener('click', () => {
-            if (!audioCtx) buildAudioGraph();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                playBtn.innerHTML = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
-                trackStatusText.innerText = "Playing...";
+            // Update SVG content
+            svgGuide.innerHTML = step.render();
+            
+            // Update progress and indicators
+            stepNumber.textContent = \`Step \${index + 1} of \${steps.length}\`;
+            progressFill.style.width = \`\${((index + 1) / steps.length) * 100}%\`;
+            
+            // Update buttons
+            btnPrev.disabled = index === 0;
+            if (index === steps.length - 1) {
+                btnNext.innerHTML = \`Restart Guide 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <polyline points="23 20 23 14 17 14"></polyline>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                    </svg>\`;
+                btnNext.style.background = 'var(--success)';
+                btnNext.style.boxShadow = '0 4px 20px -4px rgba(16, 185, 129, 0.6)';
             } else {
-                audioPlayer.pause();
-                playBtn.innerHTML = `<svg class="w-8 h-8 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
-                trackStatusText.innerText = "Paused";
-            }
-        });
-
-        // Trigger Video Stream Capture
-        startCamBtn.addEventListener('click', async () => {
-            if (!faceLandmarker) {
-                alert("The tracking model is still loading. Please give it a few seconds!");
-                return;
-            }
-            try {
-                const constraints = { video: { width: 640, height: 480 } };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                cameraPrompt.classList.add('hidden');
-                webcamRunning = true;
-                video.addEventListener('loadeddata', predictWebcamLoop);
-            } catch (err) {
-                console.error("Camera access blocked or unavailable:", err);
-                alert("Could not access webcam. Ensure permission is granted.");
-            }
-        });
-
-        // MediaPipe Analytical Loop for Real-time Facial Tracking
-        let lastVideoTime = -1;
-        async function predictWebcamLoop() {
-            if (!webcamRunning) return;
-
-            let startTimeMs = performance.now();
-            if (video.currentTime !== lastVideoTime) {
-                lastVideoTime = video.currentTime;
-                const results = faceLandmarker.detectForVideo(video, startTimeMs);
-
-                if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
-                    const blendShapes = results.faceBlendshapes[0].categories;
-                    
-                    // Pull specific coefficients for eyelids tracking down
-                    const eyeBlinkLeft = blendShapes.find(shape => shape.categoryName === "eyeBlinkLeft").score;
-                    const eyeBlinkRight = blendShapes.find(shape => shape.categoryName === "eyeBlinkRight").score;
-                    
-                    // Calculate threshold for explicit "Closed" status calculation
-                    const averageBlink = (eyeBlinkLeft + eyeBlinkRight) / 2;
-                    
-                    // Dynamic Muffle Manipulation (Smooth Exponential Ramp transitions)
-                    if (audioCtx && muffleFilter) {
-                        if (averageBlink > 0.45) { // Eyes closing down
-                            // Muffle the system down to 450Hz
-                            muffleFilter.frequency.setTargetAtTime(450, audioCtx.currentTime, 0.08);
-                            eyeStateDisplay.innerText = "UNDERWATER (CLOSED)";
-                            eyeStateDisplay.className = "text-xs text-blue-400 font-mono font-bold tracking-wider";
-                        } else {
-                            // High clear fidelity at 20000Hz
-                            muffleFilter.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.12);
-                            eyeStateDisplay.innerText = "OPEN";
-                            eyeStateDisplay.className = "text-xs text-indigo-400 font-mono tracking-wider";
-                        }
-                        
-                        // Update UI sliders dynamically based on active filtering metrics
-                        const currentFreq = Math.round(muffleFilter.frequency.value);
-                        cutoffValDisplay.innerText = `${currentFreq} Hz`;
-                        const pct = Math.min(100, (currentFreq / 20000) * 100);
-                        cutoffBar.style.width = `${pct}%`;
-                    }
-                }
-            }
-
-            // Continuous animation looping execution
-            if (webcamRunning) {
-                window.requestAnimationFrame(predictWebcamLoop);
+                btnNext.innerHTML = \`Next Step 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>\`;
+                btnNext.style.background = 'var(--primary)';
+                btnNext.style.boxShadow = '0 4px 20px -4px rgba(59, 130, 246, 0.6)';
             }
         }
 
-        // Custom Effects Engine Loop Configurations
-        function runCustomEffects() {
-            if (audioCtx && pannerNode) {
-                const speed = parseFloat(panSpeedInput.value);
-                if (speed > 0) {
-                    spatialAngle += (speed * 0.01);
-                    const currentPan = Math.sin(spatialAngle); // Ping-pong sinus balance loop
-                    pannerNode.pan.setValueAtTime(currentPan, audioCtx.currentTime);
-                    panValDisplay.innerText = currentPan > 0 ? `Right +${currentPan.toFixed(1)}` : `Left ${currentPan.toFixed(1)}`;
-                } else {
-                    pannerNode.pan.setValueAtTime(0, audioCtx.currentTime);
-                    panValDisplay.innerText = "Off";
-                }
+        // Event Listeners
+        btnNext.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+            } else {
+                currentStep = 0; // Restart
             }
-            requestAnimationFrame(runCustomEffects);
-        }
-        runCustomEffects();
+            renderStep(currentStep);
+        });
 
-        // Track Distortion Slider Controls
-        driveGainInput.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            driveValDisplay.innerText = val > 0 ? `${val}%` : "Off";
-            if (waveShaperNode) {
-                waveShaperNode.curve = makeDistortionCurve(val * 1.5);
+        btnPrev.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                renderStep(currentStep);
             }
         });
 
-        // Canvas Rendering Logic Engine (Audio Output Waves)
-        function renderVisualizer() {
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+        btnGrid.addEventListener('click', () => {
+            gridOverlay.classList.toggle('active');
+            btnGrid.classList.toggle('active');
+        });
+
+        // Initialize Camera
+        async function initCamera() {
+            const video = document.getElementById('camera-feed');
+            const statusIndicator = document.getElementById('camera-status');
             
-            function draw() {
-                requestAnimationFrame(draw);
-                if (!analyser) return;
-
-                analyser.getByteFrequencyData(dataArray);
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment', // Prefer back camera
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                // Update status UI
+                statusIndicator.innerHTML = \`<span class="dot error"></span> <span class="status-text">Camera Unavailable</span>\`;
                 
-                // Clear background cleanly
-                canvasCtx.fillStyle = 'rgb(2, 6, 23)';
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-                const barWidth = (canvas.width / bufferLength) * 2.5;
-                let barHeight;
-                let x = 0;
-
-                for (let i = 0; i < bufferLength; i++) {
-                    barHeight = dataArray[i] / 2;
-
-                    // Blend colors dynamically based on frequencies processed
-                    const r = 99 + (i * 2);
-                    const g = 102 - (i * 0.5);
-                    const b = 241 + (barHeight * 0.2);
-
-                    canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-                    canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-
-                    x += barWidth;
-                }
+                // Show a nice fallback background if camera fails
+                document.querySelector('.video-overlay').style.background = 'linear-gradient(135deg, #020617, #1e293b)';
             }
-            draw();
         }
 
-        // Canvas Responsive Layout Sync Mechanics
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = 128; 
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        // Start camera on load
+        window.addEventListener('DOMContentLoaded', initCamera);
     </script>
 </body>
 </html>
