@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,8 @@
             padding: 0;
         }
 
-        body, html {
+        body,
+        html {
             height: 100%;
             width: 100%;
             font-family: 'Outfit', sans-serif;
@@ -70,9 +72,9 @@
             width: 100%;
             height: 100%;
             background-size: 40px 40px;
-            background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
             z-index: 2;
             pointer-events: none;
             opacity: 0;
@@ -185,26 +187,65 @@
 
         /* SVG Animations */
         @keyframes slideRight {
-            0% { transform: translateX(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(12px); opacity: 0; }
+            0% {
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(12px);
+                opacity: 0;
+            }
         }
-        .animate-arrow-right { animation: slideRight 1.5s ease-in-out infinite; }
+
+        .animate-arrow-right {
+            animation: slideRight 1.5s ease-in-out infinite;
+        }
 
         @keyframes slideLeft {
-            0% { transform: translateX(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(-12px); opacity: 0; }
+            0% {
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(-12px);
+                opacity: 0;
+            }
         }
-        .animate-arrow-left { animation: slideLeft 1.5s ease-in-out infinite; }
+
+        .animate-arrow-left {
+            animation: slideLeft 1.5s ease-in-out infinite;
+        }
 
         @keyframes slideUp {
-            0% { transform: translateY(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-12px); opacity: 0; }
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-12px);
+                opacity: 0;
+            }
         }
-        .animate-arrow-up { animation: slideUp 1.5s ease-in-out infinite; }
-        
+
+        .animate-arrow-up {
+            animation: slideUp 1.5s ease-in-out infinite;
+        }
+
         .guide-container svg * {
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -265,7 +306,8 @@
             gap: 8px;
         }
 
-        .text-content h2, .text-content p {
+        .text-content h2,
+        .text-content p {
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
@@ -343,38 +385,91 @@
         }
 
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            header { padding: 16px 20px; }
+            header {
+                padding: 16px 20px;
+            }
+
             .control-panel {
                 margin: auto 16px 24px 16px;
                 padding: 24px;
                 width: calc(100% - 32px);
                 border-radius: 24px;
             }
-            h2 { font-size: 1.75rem; }
-            p { font-size: 1rem; }
-            .logo { font-size: 1.1rem; }
-            .status-text { display: none; }
-            .status-indicator { padding: 8px; }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .logo {
+                font-size: 1.1rem;
+            }
+
+            .status-text {
+                display: none;
+            }
+
+            .status-indicator {
+                padding: 8px;
+            }
+
+            .header-controls {
+                gap: 8px;
+            }
+
+            .icon-btn {
+                width: 38px;
+                height: 38px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Video Background -->
@@ -385,20 +480,37 @@
         <!-- Header -->
         <header>
             <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z" />
                 </svg>
                 FoldAlign
             </div>
-            
+
             <div class="header-controls">
+                <button id="btn-speak" class="icon-btn" title="Toggle Voice Instructions">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>
+                <button id="btn-flip-cam" class="icon-btn" title="Flip Camera">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                </button>
                 <button id="btn-grid" class="icon-btn" title="Toggle Alignment Grid">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 3h18v18H3z"/>
-                        <path d="M3 9h18"/>
-                        <path d="M3 15h18"/>
-                        <path d="M9 3v18"/>
-                        <path d="M15 3v18"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3h18v18H3z" />
+                        <path d="M3 9h18" />
+                        <path d="M3 15h18" />
+                        <path d="M9 3v18" />
+                        <path d="M15 3v18" />
                     </svg>
                 </button>
                 <div class="status-indicator" id="camera-status">
@@ -422,17 +534,19 @@
                     <div id="progress-fill" class="progress-fill"></div>
                 </div>
             </div>
-            
+
             <div class="text-content">
                 <h2 id="step-title">Align Garment</h2>
-                <p id="step-description">Place the t-shirt face down. Align it within the dashed guide. Smooth out all wrinkles.</p>
+                <p id="step-description">Place the t-shirt face down. Align it within the dashed guide. Smooth out all
+                    wrinkles.</p>
             </div>
-            
+
             <div class="button-group">
                 <button id="btn-prev" class="btn btn-secondary" disabled>Previous</button>
                 <button id="btn-next" class="btn btn-primary">
-                    Next Step 
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    Next Step
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
@@ -536,7 +650,10 @@
 
         // UI State
         let currentStep = 0;
-        
+        let voiceEnabled = false;
+        let useFrontCamera = false;
+        let currentStream = null;
+
         // DOM Elements
         const svgGuide = document.getElementById('guide-svg');
         const stepTitle = document.getElementById('step-title');
@@ -546,37 +663,51 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
         const btnGrid = document.getElementById('btn-grid');
+        const btnSpeak = document.getElementById('btn-speak');
+        const btnFlipCam = document.getElementById('btn-flip-cam');
         const gridOverlay = document.getElementById('grid-overlay');
+        const video = document.getElementById('camera-feed');
+        const statusIndicator = document.getElementById('camera-status');
 
         // Render Initial Step
         renderStep(0);
 
+        function speakText(text) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // slightly slower for better comprehension
+            window.speechSynthesis.speak(utterance);
+        }
+
         function renderStep(index) {
             const step = steps[index];
-            
+
             // Fade out text
             stepTitle.style.opacity = '0';
             stepDesc.style.opacity = '0';
             stepTitle.style.transform = 'translateY(5px)';
             stepDesc.style.transform = 'translateY(5px)';
-            
+
             setTimeout(() => {
                 // Update text content
                 stepTitle.textContent = step.title;
                 stepDesc.textContent = step.desc;
-                
+
                 // Fade in text
                 stepTitle.style.opacity = '1';
                 stepDesc.style.opacity = '1';
                 stepTitle.style.transform = 'translateY(0)';
                 stepDesc.style.transform = 'translateY(0)';
+
+                speakText(step.desc);
             }, 250);
 
             // Update SVG content
             svgGuide.innerHTML = step.render();
-            
+
             // Update progress and indicators
-            stepNumber.textContent = \`Step \${index + 1} of \${steps.length}\`;
+            stepNumber.textContent = `Step \${index + 1} of \${steps.length}\`;
             progressFill.style.width = \`\${((index + 1) / steps.length) * 100}%\`;
             
             // Update buttons
@@ -622,28 +753,68 @@
             gridOverlay.classList.toggle('active');
             btnGrid.classList.toggle('active');
         });
+        
+        btnSpeak.addEventListener('click', () => {
+            voiceEnabled = !voiceEnabled;
+            btnSpeak.classList.toggle('active', voiceEnabled);
+            if (voiceEnabled) {
+                speakText(steps[currentStep].desc);
+            } else {
+                window.speechSynthesis.cancel();
+            }
+        });
+        
+        btnFlipCam.addEventListener('click', () => {
+            useFrontCamera = !useFrontCamera;
+            initCamera();
+        });
 
-        // Initialize Camera
+        // Initialize Camera (Robust Fallback Logic)
         async function initCamera() {
-            const video = document.getElementById('camera-feed');
-            const statusIndicator = document.getElementById('camera-status');
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
             
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment', // Prefer back camera
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    } 
-                });
+            // On mobile, some devices crash with exact resolution constraints, so we start simple.
+            const constraintsList = [
+                { video: { facingMode: useFrontCamera ? 'user' : 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
+                { video: { facingMode: useFrontCamera ? 'user' : 'environment' } },
+                { video: true } // Ultimate fallback
+            ];
+            
+            let stream = null;
+            let success = false;
+            
+            for (const constraints of constraintsList) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    success = true;
+                    break; // If successful, stop trying
+                } catch (err) {
+                    console.warn(\`Failed with constraints:\`, constraints, err);
+                }
+            }
+            
+            if (success && stream) {
+                currentStream = stream;
                 video.srcObject = stream;
-            } catch (err) {
-                console.error("Error accessing camera: ", err);
-                // Update status UI
+                
+                // If front camera, mirror the video feed so it acts like a mirror
+                video.style.transform = useFrontCamera ? 'scaleX(-1)' : 'none';
+                
+                statusIndicator.innerHTML = \`<span class="dot"></span> <span class="status-text">Camera Active</span>\`;
+                document.querySelector('.video-overlay').style.background = 'radial-gradient(circle at center, rgba(2, 6, 23, 0.4) 0%, rgba(2, 6, 23, 0.9) 100%)';
+            } else {
+                console.error("All camera access attempts failed.");
                 statusIndicator.innerHTML = \`<span class="dot error"></span> <span class="status-text">Camera Unavailable</span>\`;
                 
-                // Show a nice fallback background if camera fails
+                // Fallback UI
                 document.querySelector('.video-overlay').style.background = 'linear-gradient(135deg, #020617, #1e293b)';
+                
+                // Alert if it's likely an HTTP issue on mobile
+                if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                    console.error("Camera access on mobile devices requires a secure HTTPS connection.");
+                }
             }
         }
 
@@ -651,4 +822,5 @@
         window.addEventListener('DOMContentLoaded', initCamera);
     </script>
 </body>
+
 </html>
